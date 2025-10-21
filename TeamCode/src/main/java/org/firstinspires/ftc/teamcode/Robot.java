@@ -16,6 +16,8 @@ public class Robot {
     public DcMotor rightBackDrive;
     public DcMotor rightFly;
     public DcMotor leftFly;
+    public DcMotor topIntake;
+    public DcMotor bottomIntake;
 
     public Servo ethan;  // Servo for Ethan control
 
@@ -29,6 +31,8 @@ public class Robot {
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
             leftFly = hardwareMap.get(DcMotor.class, "leftFly");
             rightFly = hardwareMap.get(DcMotor.class, "rightFly");
+            topIntake = hardwareMap.get(DcMotor.class, "topIntake");
+            bottomIntake = hardwareMap.get(DcMotor.class, "bottomIntake");
 
             ethan = hardwareMap.get(Servo.class, "ethan");
 
@@ -71,14 +75,18 @@ public class Robot {
     }
 
     public void updateFlywheelMotors(double power) {
-        leftFly.setPower(-1 * power);
-        rightFly.setPower(1 * power);
+        leftFly.setPower(1 * power);
+        rightFly.setPower(-1 * power);
+    }
+    public void updateIntakeMotors(double power) {
+        topIntake.setPower(1 * power);
+        bottomIntake.setPower(1 * power);
     }
 
     // Update Ethan servo's position (forward or reverse) with clamped values
     public void updateEthanServo(double position) {
         // Clamp the position between some max and min value to prevent it from going too far
-        position = Math.max(0.0, Math.min(position, 1.0));
+        position = Math.max(0.55, Math.min(position, 0.80));
         ethan.setPosition(position);
     }
 }

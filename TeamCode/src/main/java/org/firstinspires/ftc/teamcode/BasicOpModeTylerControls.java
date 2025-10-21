@@ -16,6 +16,7 @@ public class BasicOpModeTylerControls extends LinearOpMode {
     //private Gamepad armController;
 
     private double flywheelControl = 0;
+    private double intakeControl = 0;
     private boolean isTheButtonPressed = false;
 
     @Override
@@ -45,8 +46,10 @@ public class BasicOpModeTylerControls extends LinearOpMode {
         while (opModeIsActive()) {
             updateDrive();
             updateFlywheel();
+            updateIntake();
             telemetry.addData("Flywheel %",flywheelControl*100);
             updateEthanServo();  // Update Ethan servo control based on D-pad input
+
             telemetry.update();
         }
     }
@@ -66,12 +69,8 @@ public class BasicOpModeTylerControls extends LinearOpMode {
         if (driverController.right_bumper) {
             flywheelControl = 0;
         } else if (driverController.x) {
-            flywheelControl = 1;
-        } else if (driverController.y) {
-            flywheelControl = 0.65;
+            flywheelControl = 0.55;
         } else if (driverController.b) {
-            flywheelControl = 0.50;
-        } else if (driverController.a) {
             flywheelControl = 0.40;
         } else if (driverController.start) {
             if (!isTheButtonPressed) {
@@ -92,6 +91,17 @@ public class BasicOpModeTylerControls extends LinearOpMode {
         } else {
             robot.updateFlywheelMotors(0.0);  // Stop flywheel
         }
+    }
+    private void updateIntake() {
+        if (driverController.y) {
+            intakeControl = 1;
+        } else if (driverController.a) {
+            intakeControl = -1;
+        } else {
+            intakeControl = 0;
+        }
+        robot.updateIntakeMotors(intakeControl);
+
     }
 
     // Update Ethan servo based on D-pad input
