@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import android.util.Log; // Import for logging
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -14,8 +15,8 @@ public class Robot {
     public DcMotor leftBackDrive;
     public DcMotor rightFrontDrive;
     public DcMotor rightBackDrive;
-    public DcMotor rightFly;
-    public DcMotor leftFly;
+    public DcMotorEx rightFly;
+    public DcMotorEx leftFly;
     public DcMotor topIntake;
     public DcMotor bottomIntake;
 
@@ -29,8 +30,8 @@ public class Robot {
             leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-            leftFly = hardwareMap.get(DcMotor.class, "leftFly");
-            rightFly = hardwareMap.get(DcMotor.class, "rightFly");
+            leftFly = hardwareMap.get(DcMotorEx.class, "leftFly");
+            rightFly = hardwareMap.get(DcMotorEx.class, "rightFly");
             topIntake = hardwareMap.get(DcMotor.class, "topIntake");
             bottomIntake = hardwareMap.get(DcMotor.class, "bottomIntake");
 

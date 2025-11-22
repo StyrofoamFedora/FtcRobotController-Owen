@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "Driver Op Mode (Tyler's Controls)", group = "Driver Op Mode")
-public class BasicOpModeTylerControls extends LinearOpMode {
+public class BasicOpModeNormal extends LinearOpMode {
 
     /** @noinspection FieldMayBeFinal*/
     private ElapsedTime runtime = new ElapsedTime();
