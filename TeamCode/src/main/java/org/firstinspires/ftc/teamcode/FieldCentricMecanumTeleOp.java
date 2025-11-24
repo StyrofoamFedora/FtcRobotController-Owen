@@ -93,6 +93,8 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
             //Match Buttons Pressed
             if (currentGamepad1.right_trigger>0.2 && previousGamepad1.right_trigger<0.2){intakePower = 0.8;}//Intake
             if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){intakePower=-0.8;}//Outtake
+            if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
+            if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
             if (currentGamepad2.a && !previousGamepad2.a){targetFlywheelVelo = .60;}//Spin Up
             if (currentGamepad2.b && !previousGamepad2.b){targetFlywheelVelo = 0;}//Spin Down
             if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2){kick.setPosition(1);}// Shoot
@@ -114,7 +116,7 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
             rightFly.setPower(rightFlywheelPower);
             bottomIntake.setPower(intakePower);
             topIntake.setPower(intakePower);
-            kick.setPosition(0);
+            kick.setPosition(0.5);
 
             //PID Loop
             previousLFError = LFError;
