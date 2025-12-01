@@ -113,7 +113,7 @@ public class SixBallBetter extends LinearOpMode {
         public class kickDown implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                kicker.setPosition(0);
+                kicker.setPosition(1);
                 return false;
             }
         }
@@ -125,7 +125,7 @@ public class SixBallBetter extends LinearOpMode {
         public class kickUp implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                kicker.setPosition(0.1);
+                kicker.setPosition(0.5);
                 return false;
             }
         }
