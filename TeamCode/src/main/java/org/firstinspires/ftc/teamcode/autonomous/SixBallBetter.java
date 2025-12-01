@@ -73,8 +73,8 @@ public class SixBallBetter extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor1.setPower(-0.5);
-                    motor2.setPower(0.5);
+                    motor1.setPower(0.6);
+                    motor2.setPower(-0.6);
                     initialized = true;
                 }
                 double vel1 = Math.abs(motor1.getVelocity());
@@ -113,7 +113,7 @@ public class SixBallBetter extends LinearOpMode {
         public class kickDown implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                kicker.setPosition(-.5);
+                kicker.setPosition(0);
                 return false;
             }
         }
@@ -125,7 +125,7 @@ public class SixBallBetter extends LinearOpMode {
         public class kickUp implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                kicker.setPosition(1);
+                kicker.setPosition(0.1);
                 return false;
             }
         }
@@ -137,8 +137,8 @@ public class SixBallBetter extends LinearOpMode {
         private final DcMotorEx motor3;
         private final DcMotorEx motor4;
         public combine(HardwareMap hardwareMap) {
-            motor3 = hardwareMap.get(DcMotorEx.class, "");
-            motor4 = hardwareMap.get(DcMotorEx.class, "");
+            motor3 = hardwareMap.get(DcMotorEx.class, "bottomIntake");
+            motor4 = hardwareMap.get(DcMotorEx.class, "topIntake");
 
 
         }
@@ -147,13 +147,11 @@ public class SixBallBetter extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor3.setPower(0.9);
-                    motor4.setPower(0.9);
+                    motor3.setPower(0.5);
+                    motor4.setPower(0.5);
                     initialized = true;
                 }
-                double velI = Math.abs(motor3.getVelocity());
-                packet.put("intakeVelocity", velI);
-                return velI < 10_000.0;
+                return true;
             }
 
 
@@ -168,8 +166,8 @@ public class SixBallBetter extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor3.setPower(-0.9);
-                    motor4.setPower(-0.9);
+                    motor3.setPower(-0.5);
+                    motor4.setPower(-0.5);
                     initialized = true;
                 }
                 double velI = Math.abs(motor3.getVelocity());
@@ -191,7 +189,7 @@ public class SixBallBetter extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 motor3.setPower(0);
                 motor4.setPower(0);
-                return false;
+                return true;
             }
         }
         public Action holdtake(){
@@ -209,7 +207,7 @@ public class SixBallBetter extends LinearOpMode {
         eyes eyes = new eyes(hardwareMap);
         AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder().build();
         VisionPortal visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, ""))
+                .setCamera(hardwareMap.get(WebcamName.class, "cam"))
                 .addProcessor(tagProcessor)
                 .build();
         while (!isStopRequested() && !opModeIsActive()) {
@@ -254,24 +252,33 @@ public class SixBallBetter extends LinearOpMode {
         }
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
-                visionSet.build(),
-                eyes.detect(),
+ //               visionSet.build(),
                 shootSet1.build(),
                 new ParallelAction(
                         shooter.spinUp(),
+
                         new SequentialAction(
-                                new SleepAction(0.1),
+                                new SleepAction(1),
                                 kick.kickUp(),
-                                new SleepAction(0.1),
+                                new SleepAction(1),
                                 kick.kickDown(),
+                                combine.intake(),
                                 new SleepAction(0.1),
+                                combine.holdtake(),
+                                new SleepAction(1),
                                 kick.kickUp(),
-                                new SleepAction(0.1),
+                                new SleepAction(1),
                                 kick.kickDown(),
+                                combine.intake(),
                                 new SleepAction(0.1),
+                                combine.holdtake(),
+                                new SleepAction(1),
                                 kick.kickUp(),
-                                new SleepAction(0.1),
+                                new SleepAction(1),
                                 kick.kickDown(),
+                                combine.intake(),
+                                new SleepAction(1),
+                                combine.holdtake(),
                                 shooter.spinDown()
                         )
                 ),
