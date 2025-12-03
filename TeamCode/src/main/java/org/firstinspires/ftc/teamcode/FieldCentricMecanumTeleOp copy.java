@@ -107,26 +107,26 @@ public class CustomFieldCentricMecanumTeleOp extends LinearOpMode {
             if (currentGamepad2.x && !previousGamepad2.x){
                 if(slotOne == 2){
                     spindexer.setPosition(spindexer.getCurrentPosition+(slotTicks*(ballSlot-1)));
-                }elseif(slotTwo == 2);{
+                }elseif(slotTwo == 2){
                     spindexer.setPosition(spindexer.getCurrentPosition+(slotTicks*(ballSlot-2)));
                 }
-                elseif(slotThree == 2);{
+                elseif(slotThree == 2){
                     spindexer.setPosition(spindexer.getCurrentPosition+(slotTicks*(ballSlot-3)));
                 }
             }//go to next Purple ball
             if (currentGamepad2.a && !previousGamepad2.a){
                 if(slotOne == 1){
                     spindexer.setPosition(spindexer.getCurrentPosition+(slotTicks*(ballSlot-1)));}
-                elseif(slotTwo == 1);{
+                elseif(slotTwo == 1){
                     spindexer.setPosition(spindexer.getCurrentPosition+(slotTicks*(ballSlot-2)));}
-                elseif(slotThree == 1);{
+                elseif(slotThree == 1){
                     spindexer.setPosition(spindexer.getCurrentPosition+(slotTicks*(ballSlot-3)));}
                 
             }//go to next green ball
             if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left){spindexer.setPosition(spindexer.getCurrentPosition-slotTicks);ballSlot -= 1;} //Previous Ball Slot
             if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right){spindexer.setPosition(spindexer.getCurrentPosition+slotTicks);ballSlot += 1;} //Next Ball Slot
-            if (currentGamepad2.y && !previousGamepad2.y){if(ballSlot == 0){slotOne = 1;}elseif(ballSlot == 1);{slotTwo = 1;}elseif(ballSlot == 2);{slotThree = 1;}}//Set Current slot Green
-            if (currentGamepad2.b && !previousGamepad2.b){if(ballSlot == 0){slotOne = 2;}elseif(ballSlot == 1);{slotTwo = 2;}elseif(ballSlot == 2);{slotThree = 2;}}//Set Current slot Purple
+            if (currentGamepad2.y && !previousGamepad2.y){if(ballSlot == 0){slotOne = 1;}elseif(ballSlot == 1){slotTwo = 1;}elseif(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
+            if (currentGamepad2.b && !previousGamepad2.b){if(ballSlot == 0){slotOne = 2;}elseif(ballSlot == 1){slotTwo = 2;}elseif(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
             //Rest of the Gamepad2 controls {Shooter[shooting]}
             if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2){kick.setPosition(0);}// Shoot
             if (currentGamepad2.right_trigger<0.2 && previousGamepad2.right_trigger>0.2){kick.setPosition(1);}// UnSHoot
