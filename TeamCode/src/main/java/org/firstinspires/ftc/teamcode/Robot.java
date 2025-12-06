@@ -16,7 +16,7 @@ public class Robot {
     public DcMotor rightFrontDrive;
     public DcMotor rightBackDrive;
     public DcMotorEx rightFly;
-    public DcMotorEx leftFly;
+    //public DcMotorEx leftFly;
     public DcMotor topIntake;
     public DcMotor bottomIntake;
 
@@ -30,7 +30,7 @@ public class Robot {
             leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-            leftFly = hardwareMap.get(DcMotorEx.class, "leftFly");
+            //leftFly = hardwareMap.get(DcMotorEx.class, "leftFly");
             rightFly = hardwareMap.get(DcMotorEx.class, "rightFly");
             topIntake = hardwareMap.get(DcMotor.class, "topIntake");
             bottomIntake = hardwareMap.get(DcMotor.class, "bottomIntake");
@@ -76,7 +76,7 @@ public class Robot {
     }
 
     public void updateFlywheelMotors(double power) {
-        leftFly.setPower(1 * power);
+        //leftFly.setPower(1 * power);
         rightFly.setPower(-1 * power);
     }
     public void updateIntakeMotors(double power) {
