@@ -30,6 +30,7 @@ public class NewFieldCentricMecanumTeleOp extends LinearOpMode {
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         spindexer.setTargetPositionTolerance(5);
+        spindexer.setTargetPosition(0);
 
 
         // CHECK IF NEEDED, FOR IF MOTORS ARE BACKWARDS
@@ -156,7 +157,8 @@ public class NewFieldCentricMecanumTeleOp extends LinearOpMode {
             //leftFly.setPower(leftFlywheelPower);
             rightFly.setPower(-rightFlywheelPower);
             Intake.setPower(intakePower);
-            spindexer.setTargetPosition(ballSlot*CPR);
+            spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+            spindexer.setPower(.5);
 
             //PID Loop
             //previousLFError = LFError;
