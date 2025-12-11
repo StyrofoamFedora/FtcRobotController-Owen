@@ -141,11 +141,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad2.dpad_down && !previousGamepad2.dpad_down){targetFlywheelVelo -= .02;} //Decrease Power
           
             //PID Loop for motor velocity
-            //double LFError = targetFlywheelVelo - leftFly.getVelocity();
-            double RFError = targetFlywheelVelo - rightFly.getVelocity();
-            //double leftFlywheelPower = targetFlywheelVelo+ (Kp*LFError) + (Ki*Lintegral) + (kd*(LFError-previousLFError));
-            double rightFlywheelPower = targetFlywheelVelo +(Kp*RFError)+(Ki*Rintegral)+(kd*(RFError-previousRFError));
-            //if (Math.abs(leftFlywheelPower)<.1){leftFlywheelPower=0;}
+            double FError = targetFlywheelVelo - rightFly.getVelocity();
+            double rightFlywheelPower = targetFlywheelVelo +(Kp*FError)+(Ki*integral)+(kd*(FError-previousFError));
             if (Math.abs(rightFlywheelPower)<.1){rightFlywheelPower=0;}
 
             //Run everything
@@ -153,17 +150,14 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             backLeftMotor.setPower(backLeftPower);
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
-            //leftFly.setPower(leftFlywheelPower);
             rightFly.setPower(-rightFlywheelPower);
             Intake.setPower(intakePower);
             spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
             spindexer.setPower(.3);
 
             //PID Loop
-            //previousLFError = LFError;
-            previousRFError = RFError;
-            //Lintegral += LFError;
-            Rintegral += RFError;
+            previousFError = FError;
+            integral += FError;
             ballSlot = Math.abs(ballSlot%3);
 
             //telemetry
