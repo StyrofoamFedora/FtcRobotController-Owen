@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -50,7 +51,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
         imu.initialize(parameters);
 
-        //Gamepad Setups for Rising Edge Detectors
+        //Gamepad Setups for Rising Edge Detectors (just on triggers)
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
         Gamepad previousGamepad1 = new Gamepad();
@@ -58,22 +59,17 @@ public class NormalMecanumTeleOp extends LinearOpMode {
 
         //Set Values for PID and Intake
         double targetFlywheelVelo = 0;
-        double Rintegral = 0;
-        double Lintegral = 0;
-        double previousLFError = 0;
-        double previousRFError = 0;
-        double Kp = 0;
-        double Ki = 0;
-        double kd = 0;
         double intakePower = 0;
         int ballSlot = 0;
+        double P = 0;
+        double F = 0;
         int CPR = 538;
         int slotTicks = CPR/3;
         int slotOne = 1;
         int slotTwo = 1;
         int slotThree = 2;
-        double spindexTarget = 0;
-
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
+        rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         waitForStart();
 
         if (isStopRequested()) return;
@@ -104,8 +100,6 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){intakePower=-0.8;}//Outtake
             if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
-            if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left){spindexer.setPower(.2);}
-            if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right){spindexer.setPower(-.2);}
             // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
             if (currentGamepad2.x && !previousGamepad2.x){
                 if(slotOne == 2){
@@ -126,35 +120,30 @@ public class NormalMecanumTeleOp extends LinearOpMode {
                     spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));}
                 
             }//go to next green ball
-            if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left && !spindexer.isBusy()){
+            if (gamepad2.dpadLeftWasPressed() && !spindexer.isBusy()){
                 spindexer.setTargetPosition(spindexer.getCurrentPosition()-slotTicks);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                 spindexer.setPower(.25);
                 ballSlot -= 1;
             } //Previous Ball Slot
-            if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right && !spindexer.isBusy()){
+            if (gamepad2.dpadRightWasPressed() && !spindexer.isBusy()){
                 spindexer.setTargetPosition(spindexer.getCurrentPosition()+slotTicks);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                 spindexer.setPower(.25);
                 ballSlot += 1;
             } //Next Ball Slot
-            if (currentGamepad2.y && !previousGamepad2.y){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
-            if (currentGamepad2.b && !previousGamepad2.b){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
-            if (currentGamepad2.left_stick_x>0.2 && previousGamepad2.left_stick_x<0.2){spindexer.setPower(.25);}
-            if (currentGamepad2.left_stick_x<-0.2 && previousGamepad2.left_stick_x>-0.2){spindexer.setPower(-.25);}
+            if (gamepad2.yWasPressed()){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
+            if (gamepad2.bWasPressed()){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
             //Rest of the Gamepad2 controls {Shooter[shooting]}
             if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2){kick.setPosition(0);}// Shoot
             if (currentGamepad2.right_trigger<0.2 && previousGamepad2.right_trigger>0.2){kick.setPosition(1);}// UnSHoot
             if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 0.60;}//Spin Up
-            if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper){ targetFlywheelVelo = 0;} //Spin Down
-            if (currentGamepad2.dpad_up && !previousGamepad2.dpad_up){targetFlywheelVelo += .02;} //Increase Power
-            if (currentGamepad2.dpad_down && !previousGamepad2.dpad_down){targetFlywheelVelo -= .02;} //Decrease Power
+            if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
+            if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += .02;} //Increase Power
+            if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= .02;} //Decrease Power
           
             //PID Loop for motor velocity
-            double FError = targetFlywheelVelo - rightFly.getVelocity();
-            double rightFlywheelPower = targetFlywheelVelo +(Kp*FError)+(Ki*integral)+(kd*(FError-previousFError));
-            if (Math.abs(rightFlywheelPower)<.1){rightFlywheelPower=0;}
-            if (Math.abs(rightFlywheelPower)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
+            if (Math.abs(targetFlywheelVelo)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
             else{RGB.setPosition(.5);} //Set LED to GREEN
 
             //Run everything
@@ -162,14 +151,12 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             backLeftMotor.setPower(backLeftPower);
             frontRightMotor.setPower(frontRightPower);
             backRightMotor.setPower(backRightPower);
-            rightFly.setPower(-rightFlywheelPower);
+            rightFly.setVelocity(-targetFlywheelVelo);
             Intake.setPower(intakePower);
             spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
             spindexer.setPower(.25);
 
-            //PID Loop
-            previousFError = FError;
-            integral += FError;
+            //Set up
             ballSlot = Math.abs(ballSlot%3);
 
             //telemetry
