@@ -27,11 +27,13 @@ public class NormalMecanumTeleOp extends LinearOpMode {
          DcMotorEx spindexer = hardwareMap.get(DcMotorEx.class,"topIntake");
          DcMotor Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
          Servo kick = hardwareMap.servo.get("ethan");
+         Servo RGB = hardwareMap.servo.get("rgb");
         //leftFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        spindexer.setTargetPositionTolerance(3);
+        spindexer.setTargetPositionTolerance(2);
+        spindexer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spindexer.setTargetPosition(0);
 
 
@@ -87,7 +89,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
 
             //Take values from sticks
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x*1.1;
+            double x = -gamepad1.left_stick_x*1.1;
             double rx = gamepad1.right_stick_x;
 
             // rationalize the motor power to be less than 1
@@ -102,6 +104,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){intakePower=-0.8;}//Outtake
             if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
+            if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left){spindexer.setPower(.2);}
+            if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right){spindexer.setPower(-.2);}
             // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
             if (currentGamepad2.x && !previousGamepad2.x){
                 if(slotOne == 2){
@@ -122,16 +126,22 @@ public class NormalMecanumTeleOp extends LinearOpMode {
                     spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));}
                 
             }//go to next green ball
-            if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left){
+            if (currentGamepad2.dpad_left && !previousGamepad2.dpad_left && !spindexer.isBusy()){
                 spindexer.setTargetPosition(spindexer.getCurrentPosition()-slotTicks);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.25);
                 ballSlot -= 1;
             } //Previous Ball Slot
-            if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right){
+            if (currentGamepad2.dpad_right && !previousGamepad2.dpad_right && !spindexer.isBusy()){
                 spindexer.setTargetPosition(spindexer.getCurrentPosition()+slotTicks);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.25);
                 ballSlot += 1;
             } //Next Ball Slot
             if (currentGamepad2.y && !previousGamepad2.y){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
             if (currentGamepad2.b && !previousGamepad2.b){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
+            if (currentGamepad2.left_stick_x>0.2 && previousGamepad2.left_stick_x<0.2){spindexer.setPower(.25);}
+            if (currentGamepad2.left_stick_x<-0.2 && previousGamepad2.left_stick_x>-0.2){spindexer.setPower(-.25);}
             //Rest of the Gamepad2 controls {Shooter[shooting]}
             if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2){kick.setPosition(0);}// Shoot
             if (currentGamepad2.right_trigger<0.2 && previousGamepad2.right_trigger>0.2){kick.setPosition(1);}// UnSHoot
@@ -147,6 +157,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             double rightFlywheelPower = targetFlywheelVelo +(Kp*RFError)+(Ki*Rintegral)+(kd*(RFError-previousRFError));
             //if (Math.abs(leftFlywheelPower)<.1){leftFlywheelPower=0;}
             if (Math.abs(rightFlywheelPower)<.1){rightFlywheelPower=0;}
+            if (Math.abs(rightFlywheelPower)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
+            else{RGB.setPosition(.5);} //Set LED to GREEN
 
             //Run everything
             frontLeftMotor.setPower(frontLeftPower);
@@ -157,7 +169,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             rightFly.setPower(-rightFlywheelPower);
             Intake.setPower(intakePower);
             spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-            spindexer.setPower(.3);
+            spindexer.setPower(.25);
 
             //PID Loop
             //previousLFError = LFError;

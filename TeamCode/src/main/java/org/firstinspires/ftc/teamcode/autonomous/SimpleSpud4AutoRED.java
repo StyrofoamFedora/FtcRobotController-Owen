@@ -20,18 +20,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
 
 //Class Define
 @Config
-@Autonomous(name = "SimpleSpud4AutoBLUE", group = "Autonomous")
-public class SimpleSpud4Auto extends LinearOpMode {
+@Autonomous(name = "SimpleSpud4AutoRED", group = "Autonomous")
+public class SimpleSpud4AutoRED extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
     int apriltagid = 21;
@@ -81,7 +75,7 @@ public class SimpleSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor1.setPower(-0.5);
+                    motor1.setPower(-0.45);
                     initialized = true;
                 }
 
@@ -119,6 +113,7 @@ public class SimpleSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 kicker.setPosition(1);
+                sleep(500);
                 return false;
             }
         }
@@ -131,6 +126,7 @@ public class SimpleSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 kicker.setPosition(0);
+                sleep(500);
                 return false;
             }
         }
@@ -271,7 +267,7 @@ public class SimpleSpud4Auto extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(7,-50), Math.toRadians(85));
         TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(7,-50, Math.toRadians(85)))
                 .strafeTo(new Vector2d(7,-35))
-                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(-35))
+                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(-145))
                 .waitSeconds(0.2);
         TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
                 .strafeToLinearHeading(new Vector2d(-5,-30),Math.toRadians(0));
@@ -283,8 +279,8 @@ public class SimpleSpud4Auto extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(-5,50),Math.toRadians(0));
         TrajectoryActionBuilder intaking = drive.actionBuilder(new Pose2d(5,0, Math.toRadians(0)))
                 .lineToX(-50);
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-7,60,Math.toRadians(-35)))
-                .lineToY(70);
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(7,-35,Math.toRadians(-145)))
+                .strafeToConstantHeading(new Vector2d(7,-55));
         TrajectoryActionBuilder shootSet2 = drive.actionBuilder(initialPose)
                 .strafeToLinearHeading(new Vector2d(7,-60), Math.toRadians(-35));
 //Pick apriltagid and set as Triplet
