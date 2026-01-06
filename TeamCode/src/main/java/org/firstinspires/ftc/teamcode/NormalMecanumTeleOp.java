@@ -63,11 +63,13 @@ public class NormalMecanumTeleOp extends LinearOpMode {
         int ballSlot = 0;
         double P = 0;
         double F = 0;
-        int CPR = 538;
-        int slotTicks = CPR/3;
+        double CPR = 537.7;
+        double slotTicks = CPR/3;
         int slotOne = 1;
         int slotTwo = 1;
         int slotThree = 2;
+        int currentIntTick = 0;
+        double currentTick = 0;
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         waitForStart();
@@ -101,7 +103,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
             // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
-            if (currentGamepad2.x && !previousGamepad2.x){
+            /*if (currentGamepad2.x && !previousGamepad2.x){
                 if(slotOne == 2){
                     spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));
                 }else if(slotTwo == 2){
@@ -119,23 +121,28 @@ public class NormalMecanumTeleOp extends LinearOpMode {
                 else if(slotThree == 1){
                     spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));}
                 
-            }//go to next green ball
-            if (gamepad2.dpadLeftWasPressed() && !spindexer.isBusy()){
-                spindexer.setTargetPosition(spindexer.getCurrentPosition()-slotTicks);
+            }*///go to next green ball
+            if (gamepad2.dpadLeftWasPressed()){
+                currentTick-=slotTicks;
+                currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.25);
+                spindexer.setPower(.3);
                 ballSlot -= 1;
+
             } //Previous Ball Slot
-            if (gamepad2.dpadRightWasPressed() && !spindexer.isBusy()){
-                spindexer.setTargetPosition(spindexer.getCurrentPosition()+slotTicks);
+            if (gamepad2.dpadRightWasPressed()){
+                currentTick-=slotTicks;
+                currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.25);
+                spindexer.setPower(.3);
                 ballSlot += 1;
             } //Next Ball Slot
             if (gamepad2.yWasPressed()){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
             if (gamepad2.bWasPressed()){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
             //Rest of the Gamepad2 controls {Shooter[shooting]}
-            if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2){kick.setPosition(0);}// Shoot
+            if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2 && spindexer.isBusy()){kick.setPosition(0);}// Shoot
             if (currentGamepad2.right_trigger<0.2 && previousGamepad2.right_trigger>0.2){kick.setPosition(1);}// UnSHoot
             if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 0.60;}//Spin Up
             if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
@@ -154,7 +161,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             rightFly.setVelocity(-targetFlywheelVelo);
             Intake.setPower(intakePower);
             spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-            spindexer.setPower(.25);
+            spindexer.setPower(.3);
 
             //Set up
             ballSlot = Math.abs(ballSlot%3);
