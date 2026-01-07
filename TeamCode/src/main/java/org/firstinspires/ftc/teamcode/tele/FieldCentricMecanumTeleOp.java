@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tele;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -11,10 +11,8 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
 @TeleOp
-public class NormalMecanumTeleOp extends LinearOpMode {
+public class FieldCentricMecanumTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -68,7 +66,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
         int slotOne = 1;
         int slotTwo = 1;
         int slotThree = 2;
-        int currentIntTick = 0;
+        int currentIntTick;
         double currentTick = 0;
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
@@ -102,26 +100,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){intakePower=-0.8;}//Outtake
             if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
+
             // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
-            /*if (currentGamepad2.x && !previousGamepad2.x){
-                if(slotOne == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));
-                }else if(slotTwo == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-2)));
-                }
-                else if(slotThree == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));
-                }
-            }//go to next Purple ball
-            if (currentGamepad2.a && !previousGamepad2.a){
-                if(slotOne == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));}
-                else if(slotTwo == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-2)));}
-                else if(slotThree == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));}
-                
-            }*///go to next green ball
             if (gamepad2.dpadLeftWasPressed()){
                 currentTick-=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
