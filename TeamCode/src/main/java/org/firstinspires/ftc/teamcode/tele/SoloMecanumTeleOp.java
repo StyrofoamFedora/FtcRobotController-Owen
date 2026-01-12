@@ -8,9 +8,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+
+
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp
@@ -28,6 +32,7 @@ public class SoloMecanumTeleOp extends LinearOpMode {
          DcMotor Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
          Servo kick = hardwareMap.servo.get("ethan");
          Servo RGB = hardwareMap.servo.get("rgb");
+        NormalizedColorSensor FrontColor = hardwareMap.get(NormalizedColorSensor.class, "frontColor");
         rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -61,11 +66,14 @@ public class SoloMecanumTeleOp extends LinearOpMode {
         double F = 0;
         double CPR = 537.7;
         double slotTicks = CPR/3;
-        int slotOne = 1;
-        int slotTwo = 1;
-        int slotThree = 2;
+        int slotFront = 1;
+        int slotLeft = 1;
+        int slotRight = 2;
+        int preSlotFront;
+        int slotHold;
         int currentIntTick;
         double currentTick = 0;
+        String frontBall;
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         waitForStart();
@@ -79,11 +87,19 @@ public class SoloMecanumTeleOp extends LinearOpMode {
             previousGamepad1.copy(currentGamepad1);
             currentGamepad1.copy(gamepad1);
 
+            //Read Color of Ball 1
+            double hue = JavaUtil.colorToHue(FrontColor.getNormalizedColors().toColor());
+            if(hue < 80){frontBall = "None"; preSlotFront = 0;}
+            else if (hue < 150) {frontBall = "Green"; preSlotFront = 2;}
+            else if (hue < 350){frontBall = "Purple"; preSlotFront = 1;}
+            else {frontBall = "None"; preSlotFront = 0;}
+
+            //Driving
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x;
             double rx = gamepad1.right_stick_x;
-            if (gamepad1.options) {imu.resetYaw();}
 
+            if (gamepad1.options) {imu.resetYaw();}
             double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
             // Rotate the movement direction counter to the bot's rotation
             double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -104,25 +120,49 @@ public class SoloMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
             if (gamepad1.rightBumperWasReleased()){intakePower=0;}//Outtake Shutoff
             if (gamepad1.dpadLeftWasPressed()){
+                if (slotRight == 0){
+                    slotLeft = slotRight;
+                    slotRight = slotFront;
+                    slotFront = preSlotFront;
+                }
+                else{
+                    slotHold = slotRight;
+                    slotLeft = slotRight;
+                    slotRight = slotFront;
+                    slotFront = slotHold;
+                }
+                ballSlot -= 1;
                 currentTick-=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.3);
-                ballSlot -= 1;} //Previous Ball Slot
+                spindexer.setPower(.3);} //Previous Ball Slot
             if (gamepad1.dpadRightWasPressed()){
+                if (slotRight == 0){
+                    slotRight = slotLeft;
+                    slotLeft = slotFront;
+                    slotFront = preSlotFront;
+                }
+                else{
+                    slotHold = slotRight;
+                    slotRight = slotLeft;
+                    slotLeft = slotFront;
+                    slotFront = slotHold;
+                }
+                ballSlot += 1;
                 currentTick-=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.3);
-                ballSlot += 1;} //Next Ball Slot
-            if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2 && spindexer.isBusy()){kick.setPosition(0);}// Shoot
+                spindexer.setPower(.3);} //Next Ball Slot
+
+            if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2 && spindexer.isBusy()){kick.setPosition(0); slotLeft = 0;}// Shoot
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){kick.setPosition(1);}// UnShoot
             if (gamepad1.leftBumperWasPressed()){targetFlywheelVelo = 0.60;}//Spin Up
             if (gamepad1.rightStickButtonWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
             if (gamepad1.dpadUpWasPressed()){targetFlywheelVelo += .02;} //Increase Power
             if (gamepad1.dpadDownWasPressed()){targetFlywheelVelo -= .02;} //Decrease Power
+
             //COLOR OF LIGHT
             if (Math.abs(targetFlywheelVelo)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
             else{RGB.setPosition(.5);} //Set LED to GREEN
@@ -142,9 +182,10 @@ public class SoloMecanumTeleOp extends LinearOpMode {
             //telemetry
             telemetry.addData("Flywheel %",targetFlywheelVelo*100);
             telemetry.addData("Current Slot",ballSlot);
-            telemetry.addData("Slot1",slotOne);
-            telemetry.addData("Slot2",slotTwo);
-            telemetry.addData("Slot 3",slotThree);
+            telemetry.addData("Slot1",slotFront);
+            telemetry.addData("Slot2",slotLeft);
+            telemetry.addData("Slot 3",slotRight);
+            telemetry.addData("Front Ball Color", frontBall);
             telemetry.update();
         }
     }
