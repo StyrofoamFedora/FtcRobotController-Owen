@@ -79,7 +79,7 @@ public class SampleMecanumTeleOp extends LinearOpMode {
 
             //Take values from sticks
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = -gamepad1.left_stick_x*1.1;
+            double x = gamepad1.left_stick_x*1.1;
             double rx = gamepad1.right_stick_x;
             // rationalize the motor power to be less than 1
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
