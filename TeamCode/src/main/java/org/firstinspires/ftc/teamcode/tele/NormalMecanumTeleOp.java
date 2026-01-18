@@ -59,8 +59,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
         double targetFlywheelVelo = 0;
         double intakePower = 0;
         int ballSlot = 0;
-        double P = 0;
-        double F = 0;
+        double P = 250;
+        double F = 15;
         double CPR = 537.7;
         double slotTicks = CPR/3;
         int slotOne = 1;

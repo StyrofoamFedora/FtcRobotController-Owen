@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.tele;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -32,7 +33,7 @@ public class SoloMecanumTeleOp extends LinearOpMode {
          DcMotor Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
          Servo kick = hardwareMap.servo.get("ethan");
          Servo RGB = hardwareMap.servo.get("rgb");
-        NormalizedColorSensor FrontColor = hardwareMap.get(NormalizedColorSensor.class, "frontColor");
+        ColorRangeSensor FrontColor = hardwareMap.get(ColorRangeSensor.class, "frontColor");
         rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -62,8 +63,8 @@ public class SoloMecanumTeleOp extends LinearOpMode {
         double targetFlywheelVelo = 0;
         double intakePower = 0;
         int ballSlot = 0;
-        double P = 0;
-        double F = 0;
+        double P = 250;
+        double F = 15;
         double CPR = 537.7;
         double slotTicks = CPR/3;
         int slotFront = 1;
@@ -89,7 +90,7 @@ public class SoloMecanumTeleOp extends LinearOpMode {
 
             //Read Color of Ball 1
             double hue = JavaUtil.colorToHue(FrontColor.getNormalizedColors().toColor());
-            if(hue < 80){frontBall = "None"; preSlotFront = 0;}
+            if(hue < 50){frontBall = "None"; preSlotFront = 0;}
             else if (hue < 150) {frontBall = "Green"; preSlotFront = 2;}
             else if (hue < 350){frontBall = "Purple"; preSlotFront = 1;}
             else {frontBall = "None"; preSlotFront = 0;}
@@ -186,6 +187,12 @@ public class SoloMecanumTeleOp extends LinearOpMode {
             telemetry.addData("Slot2",slotLeft);
             telemetry.addData("Slot 3",slotRight);
             telemetry.addData("Front Ball Color", frontBall);
+            telemetry.addData("hue", hue);
+            telemetry.addData("Color", FrontColor.getNormalizedColors().toString());
+            telemetry.addData("Color", FrontColor.getNormalizedColors().toColor());
+            telemetry.addData("Red", FrontColor.getNormalizedColors().red);
+            telemetry.addData("Blue", FrontColor.getNormalizedColors().blue);
+            telemetry.addData("Green", FrontColor.getNormalizedColors().green);
             telemetry.update();
         }
     }
