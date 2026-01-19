@@ -63,8 +63,8 @@ public class SoloMecanumTeleOp extends LinearOpMode {
         double targetFlywheelVelo = 0;
         double intakePower = 0;
         int ballSlot = 0;
-        double P = 250;
-        double F = 15;
+        double P = 75;
+        double F = 14;
         double CPR = 537.7;
         double slotTicks = CPR/3;
         int slotFront = 1;
@@ -98,7 +98,7 @@ public class SoloMecanumTeleOp extends LinearOpMode {
             //Driving
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x;
-            double rx = gamepad1.right_stick_x;
+            double rx = gamepad1.right_stick_x*0.8;
 
             if (gamepad1.options) {imu.resetYaw();}
             double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -159,10 +159,10 @@ public class SoloMecanumTeleOp extends LinearOpMode {
 
             if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2 && spindexer.isBusy()){kick.setPosition(0); slotLeft = 0;}// Shoot
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){kick.setPosition(1);}// UnShoot
-            if (gamepad1.leftBumperWasPressed()){targetFlywheelVelo = 0.60;}//Spin Up
+            if (gamepad1.leftBumperWasPressed()){targetFlywheelVelo = 1400;}//Spin Up
             if (gamepad1.rightStickButtonWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
-            if (gamepad1.dpadUpWasPressed()){targetFlywheelVelo += .02;} //Increase Power
-            if (gamepad1.dpadDownWasPressed()){targetFlywheelVelo -= .02;} //Decrease Power
+            if (gamepad1.dpadUpWasPressed()){targetFlywheelVelo += 20;} //Increase Power
+            if (gamepad1.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
 
             //COLOR OF LIGHT
             if (Math.abs(targetFlywheelVelo)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
@@ -181,7 +181,7 @@ public class SoloMecanumTeleOp extends LinearOpMode {
             ballSlot = Math.abs(ballSlot%3);
 
             //telemetry
-            telemetry.addData("Flywheel %",targetFlywheelVelo*100);
+            telemetry.addData("Flywheel %",targetFlywheelVelo);
             telemetry.addData("Current Slot",ballSlot);
             telemetry.addData("Slot1",slotFront);
             telemetry.addData("Slot2",slotLeft);

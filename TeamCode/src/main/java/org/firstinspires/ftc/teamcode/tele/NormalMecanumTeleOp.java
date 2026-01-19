@@ -59,8 +59,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
         double targetFlywheelVelo = 0;
         double intakePower = 0;
         int ballSlot = 0;
-        double P = 250;
-        double F = 15;
+        double P = 75;
+        double F = 13.2;
         double CPR = 537.7;
         double slotTicks = CPR/3;
         int slotOne = 1;
@@ -86,7 +86,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             //Take values from sticks
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x*1.1;
-            double rx = gamepad1.right_stick_x;
+            double rx = gamepad1.right_stick_x*0.8;
 
             // rationalize the motor power to be less than 1
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
@@ -142,10 +142,10 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             //Rest of the Gamepad2 controls {Shooter[shooting]}
             if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2 && spindexer.isBusy()){kick.setPosition(0);}// Shoot
             if (currentGamepad2.right_trigger<0.2 && previousGamepad2.right_trigger>0.2){kick.setPosition(1);}// UnSHoot
-            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 0.60;}//Spin Up
+            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 1200;}//Spin Up
             if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
-            if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += .02;} //Increase Power
-            if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= .02;} //Decrease Power
+            if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += 20;} //Increase Power
+            if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
           
             //PID Loop for motor velocity
             if (Math.abs(targetFlywheelVelo)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
@@ -165,7 +165,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             ballSlot = Math.abs(ballSlot%3);
 
             //telemetry
-            telemetry.addData("Flywheel %",targetFlywheelVelo*100);
+            telemetry.addData("Flywheel %",targetFlywheelVelo);
             telemetry.addData("Current Slot",ballSlot);
             telemetry.addData("Slot1",slotOne);
             telemetry.addData("Slot2",slotTwo);

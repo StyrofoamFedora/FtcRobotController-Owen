@@ -6,10 +6,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+import java.lang.annotation.Target;
+
 @TeleOp
 public class FlywheelTuner extends OpMode {
     public DcMotorEx rightFly;
-    double TargetVelocity;
+    double TargetVelocity = 1200;
     double F = 0;
     double P = 0;
     double[] stepSizes = {10.0,1.0,0.1,0.01,0.001};
@@ -42,6 +44,12 @@ public class FlywheelTuner extends OpMode {
         }
         if (gamepad1.dpadUpWasPressed()) {
             P += stepSizes[stepIndex];
+        }
+        if (gamepad1.leftBumperWasPressed()) {
+            TargetVelocity -= 10;
+        }
+        if(gamepad1.rightBumperWasPressed()){
+            TargetVelocity += 10;
         }
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         rightFly.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER,pidfCoefficients);
