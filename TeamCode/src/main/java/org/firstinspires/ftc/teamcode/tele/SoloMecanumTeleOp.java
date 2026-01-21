@@ -157,7 +157,7 @@ public class SoloMecanumTeleOp extends LinearOpMode {
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                 spindexer.setPower(.3);} //Next Ball Slot
 
-            if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2 && spindexer.isBusy()){kick.setPosition(0); slotLeft = 0;}// Shoot
+            if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){kick.setPosition(0); slotLeft = 0;}// Shoot
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){kick.setPosition(1);}// UnShoot
             if (gamepad1.leftBumperWasPressed()){targetFlywheelVelo = 1400;}//Spin Up
             if (gamepad1.rightStickButtonWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
