@@ -6,39 +6,28 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.Arclength;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Pose2dDual;
-import com.acmerobotics.roadrunner.PosePath;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
-import java.util.List;
 
 //Class Define
 @Config
-@Autonomous(name = "SimpleSpud4AutoBLUE", group = "Autonomous")
-public class SimpleSpud4Auto extends LinearOpMode {
+@Autonomous(name = "CloseRED", group = "Autonomous")
+public class REDCloseSpud4Auto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
     int apriltagid = 21;
@@ -254,7 +243,7 @@ public class SimpleSpud4Auto extends LinearOpMode {
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d initialPose = new Pose2d(7.00, -70.00, Math.toRadians(90.00));
+        Pose2d initialPose = new Pose2d(-7.00, -70.00, Math.toRadians(90.00));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         shooter shooter = new shooter(hardwareMap);
         kick kick = new kick(hardwareMap);
@@ -280,34 +269,19 @@ public class SimpleSpud4Auto extends LinearOpMode {
         waitForStart();
 // Trajectories
         TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(7,-50), Math.toRadians(85));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(7,-50, Math.toRadians(90)))
-                .strafeTo(new Vector2d(7,-35))
-                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(-40))
+                .strafeToLinearHeading(new Vector2d(-7,-50), Math.toRadians(85));
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-7,-50, Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(220))
                 .waitSeconds(0.2);
         TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
-                .strafeToLinearHeading(new Vector2d(-5,-15),Math.toRadians(0));
-        TrajectoryActionBuilder intakeMiddleSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
-                .strafeTo(new Vector2d(-5,-15))
-                .strafeToLinearHeading(new Vector2d(-5,10),Math.toRadians(0));
-        TrajectoryActionBuilder intakeBottomSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
-                .strafeTo(new Vector2d(-5,25))
-                .strafeToLinearHeading(new Vector2d(-5,-35),Math.toRadians(0));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(5,-15, Math.toRadians(0)))
-                .strafeTo(new Vector2d(27.5, -15),new TranslationalVelConstraint(4));
+                .strafeToLinearHeading(new Vector2d(5,-15),Math.toRadians(180));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(5,-15, Math.toRadians(180)))
+                .strafeTo(new Vector2d(-27.5, -15),new TranslationalVelConstraint(4));
         TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-7,-45,Math.toRadians(-35)))
                 .strafeTo(new Vector2d(20,-15));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(27.5,-15,Math.toRadians(0)))
-                .strafeToLinearHeading(new Vector2d(-7,-45), Math.toRadians(-40));
-//Pick apriltagid and set as Triplet
-        Action tripletChosen;
-        if (apriltagid == 23){
-            tripletChosen = intakeTopSet.build();
-        } else if (apriltagid == 22) {
-            tripletChosen = intakeMiddleSet.build();
-        } else {
-            tripletChosen = intakeBottomSet.build();
-        }
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-27.5,-15,Math.toRadians(180)))
+                .strafeToLinearHeading(new Vector2d(7,-45), Math.toRadians(220));
+
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
                 shooter.spinUp(),

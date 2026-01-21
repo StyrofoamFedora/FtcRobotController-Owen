@@ -11,6 +11,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -18,19 +19,21 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 //Class Define
 @Config
-@Autonomous(name = "SimpleSpud4AutoRED", group = "Autonomous")
-public class SimpleSpud4AutoRED extends LinearOpMode {
+@Autonomous(name = "CloseBLUE", group = "Autonomous")
+public class BLUECloseSpud4Auto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
     int apriltagid = 21;
     int CPR = 538;
     int slotTicks = CPR/3;
+
     //Set up Actions
     //public class eyes{
         /*private WebcamName cam;
@@ -63,6 +66,8 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
         public shooter(HardwareMap hardwareMap) {
             motor1 = hardwareMap.get(DcMotorEx.class, "rightFly");
 
+            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,13.2);
+            motor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
 
         }
@@ -75,7 +80,7 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor1.setPower(-0.45);
+                    motor1.setVelocity(-1200);
                     initialized = true;
                 }
 
@@ -92,7 +97,7 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                motor1.setPower(0);
+                motor1.setVelocity(0);
                 return false;
             }
         }
@@ -113,7 +118,7 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 kicker.setPosition(1);
-                sleep(500);
+                sleep(100);
                 return false;
             }
         }
@@ -126,7 +131,7 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 kicker.setPosition(0);
-                sleep(500);
+                sleep(100);
                 return false;
             }
         }
@@ -209,7 +214,7 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
                     spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                     spindexer.setPower(.3);
                     initialized = true;
-                    sleep(500);
+                    sleep(400);
                 }
                 return false;
             }
@@ -224,7 +229,7 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
                 if (!initialized) {
                     spindexer.setTargetPosition(spindexer.getCurrentPosition()-slotTicks);
                     spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                    spindexer.setPower(.4);
+                    spindexer.setPower(.3);
                     initialized = true;
                 }
                 return false;
@@ -265,24 +270,24 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
 // Trajectories
         TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
                 .strafeToLinearHeading(new Vector2d(7,-50), Math.toRadians(85));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(7,-50, Math.toRadians(85)))
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(7,-50, Math.toRadians(90)))
                 .strafeTo(new Vector2d(7,-35))
-                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(-145))
+                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(-40))
                 .waitSeconds(0.2);
         TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
-                .strafeToLinearHeading(new Vector2d(-5,-30),Math.toRadians(0));
+                .strafeToLinearHeading(new Vector2d(-5,-15),Math.toRadians(0));
         TrajectoryActionBuilder intakeMiddleSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
                 .strafeTo(new Vector2d(-5,-15))
                 .strafeToLinearHeading(new Vector2d(-5,10),Math.toRadians(0));
         TrajectoryActionBuilder intakeBottomSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
                 .strafeTo(new Vector2d(-5,25))
-                .strafeToLinearHeading(new Vector2d(-5,50),Math.toRadians(0));
-        TrajectoryActionBuilder intaking = drive.actionBuilder(new Pose2d(5,0, Math.toRadians(0)))
-                .lineToX(-50);
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(7,-35,Math.toRadians(-145)))
-                .strafeToConstantHeading(new Vector2d(7,-55));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(7,-60), Math.toRadians(-35));
+                .strafeToLinearHeading(new Vector2d(-5,-35),Math.toRadians(0));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(5,-15, Math.toRadians(0)))
+                .strafeTo(new Vector2d(27.5, -15),new TranslationalVelConstraint(4));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-7,-45,Math.toRadians(-35)))
+                .strafeTo(new Vector2d(20,-15));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(27.5,-15,Math.toRadians(0)))
+                .strafeToLinearHeading(new Vector2d(-7,-45), Math.toRadians(-40));
 //Pick apriltagid and set as Triplet
         Action tripletChosen;
         if (apriltagid == 23){
@@ -294,41 +299,76 @@ public class SimpleSpud4AutoRED extends LinearOpMode {
         }
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
- //               visionSet.build(),
+                shooter.spinUp(),
                 shootSet1.build(),
-                new ParallelAction(
-                        shooter.spinUp(),
-                    new SequentialAction(
-                        new SleepAction(2),
+                new SequentialAction(
+                        new SleepAction(0),
                         kick.kickUp(),
-                        new SleepAction(0.1),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(0.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
                         kick.kickDown(),
                         new SleepAction(1),
                         spindex.nextSlot(),
                         new SleepAction(1),
                         kick.kickUp(),
-                        new SleepAction(0.1),
+                        new SleepAction(0.2),
                         kick.kickDown(),
-                        new SleepAction(1),
+                        new SleepAction(0.5),
                         spindex.nextSlot(),
                         new SleepAction(1),
                         kick.kickUp(),
-                        new SleepAction(0.1),
-                        kick.kickDown(),
-                        new SleepAction(1),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.1),
-                        kick.kickDown(),
-                        new SleepAction(1),
-                        spindex.nextSlot()
-                    )
+                        new SleepAction(0.2),
+                        kick.kickDown()
+
                 ),
-                new SleepAction(1),
+                intakeTopSet.build(),
                 shooter.spinDown(),
-                //tripletChosen
-                outsideSet.build()
+                combine.intake(),
+                new SleepAction(.5),
+                new ParallelAction(
+                        intakingTop.build(),
+                        new SequentialAction(
+                                new SleepAction(1),
+                                spindex.nextSlot(),
+                                new SleepAction(.5),
+                                spindex.nextSlot(),
+                                new SleepAction(1),
+                                spindex.nextSlot(),
+                                new SleepAction(.5)
+                        )
+                ),
+                combine.holdtake(),
+                shooter.spinUp(),
+                shootSet2.build(),
+                new SequentialAction(
+                        new SleepAction(0),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown()
+                )
         ));
     }
 }
