@@ -1,0 +1,40 @@
+package com.example.meepmeeptesting;
+
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.noahbres.meepmeep.MeepMeep;
+import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
+import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
+
+public class MeepMeepTesting {
+    public static void main(String[] args) {
+        MeepMeep meepMeep = new MeepMeep(700);
+
+        RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
+                // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
+                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 16)
+                .build();
+
+        //BLUE CLOSE
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-55, -45, Math.toRadians(229)))
+                .waitSeconds(1)
+                .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(229))
+                .waitSeconds(5)
+                .strafeToLinearHeading(new Vector2d(-12,-20),Math.toRadians(270))
+                .strafeTo(new Vector2d(-12,-30))
+                .strafeTo(new Vector2d(-12,-52), new TranslationalVelConstraint(4))
+                .waitSeconds(0.5)
+                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(230))
+                .waitSeconds(5)
+                        .strafeTo(new Vector2d(0,-30))
+                .build());
+
+        meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_BLACK)
+                .setDarkMode(true)
+                .setBackgroundAlpha(0.95f)
+                .addEntity(myBot)
+                .start();
+    }
+}
