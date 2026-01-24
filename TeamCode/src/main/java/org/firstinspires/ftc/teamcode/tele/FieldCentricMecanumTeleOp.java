@@ -6,12 +6,16 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp
 public class FieldCentricMecanumTeleOp extends LinearOpMode {
@@ -24,18 +28,22 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
          DcMotor backRightMotor = hardwareMap.get(DcMotor.class,"right_back_drive");
          DcMotor frontLeftMotor = hardwareMap.get(DcMotor.class,"left_front_drive");
          DcMotorEx rightFly = hardwareMap.get(DcMotorEx.class,"rightFly");
-         //DcMotorEx leftFly = hardwareMap.get(DcMotorEx.class,"leftFly");
          DcMotorEx spindexer = hardwareMap.get(DcMotorEx.class,"topIntake");
          DcMotor Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
          Servo kick = hardwareMap.servo.get("ethan");
          Servo RGB = hardwareMap.servo.get("rgb");
-        //leftFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+         ColorRangeSensor shootColor = hardwareMap.get(ColorRangeSensor.class, "color");
+        DistanceSensor frontDistance = hardwareMap.get(DistanceSensor.class,"frontSlot");
         rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setTargetPositionTolerance(2);
         spindexer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spindexer.setTargetPosition(0);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 
@@ -70,6 +78,8 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
         int slotThree = 2;
         int currentIntTick;
         double currentTick = 0;
+        String shootBall;
+
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         waitForStart();
@@ -125,7 +135,7 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
 
             } //Previous Ball Slot
             if (gamepad2.dpadRightWasPressed()){
-                currentTick-=slotTicks;
+                currentTick+=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -143,8 +153,30 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
             if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
           
             //PID Loop for motor velocity
-            if (Math.abs(targetFlywheelVelo)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
-            else{RGB.setPosition(.5);} //Set LED to GREEN
+            /*if (targetFlywheelVelo == 1200){RGB.setPosition(.5);}//Set LED to Green
+            else{RGB.setPosition(.28);} //Set LED to RED
+*/
+            /*if(frontDistance.getDistance(DistanceUnit.CM)<15){RGB.setPosition(.5);}//Set LED to Green
+            else{RGB.setPosition(.28);} //Set LED to RED*/
+
+            double hue = JavaUtil.colorToHue(shootColor.getNormalizedColors().toColor());
+            if(hue < 50){shootBall = "None"; }
+            else if (hue < 200) {shootBall = "Green"; }
+            else if (hue < 350){shootBall = "Purple"; }
+            else {shootBall = "None"; }
+
+            if(shootBall.equals("Green")){RGB.setPosition(.5);}//Set LED to Green
+            else if (shootBall.equals("Purple")) {RGB.setPosition(.72);}
+            else{RGB.setPosition(.5);}
+
+            /*if (shootColor.getDistance(DistanceUnit.CM)>8 && frontDistance.getDistance(DistanceUnit.CM)<8) {
+                currentTick-=slotTicks;
+                currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.3);
+                ballSlot -= 1;
+            }*/
 
             //Run everything
             frontLeftMotor.setPower(frontLeftPower);
@@ -165,6 +197,8 @@ public class FieldCentricMecanumTeleOp extends LinearOpMode {
             telemetry.addData("Slot1",slotOne);
             telemetry.addData("Slot2",slotTwo);
             telemetry.addData("Slot 3",slotThree);
+            telemetry.addData("Distance",frontDistance.getDistance(DistanceUnit.CM));
+            telemetry.addData("Color", shootBall);
             telemetry.update();
         }
     }

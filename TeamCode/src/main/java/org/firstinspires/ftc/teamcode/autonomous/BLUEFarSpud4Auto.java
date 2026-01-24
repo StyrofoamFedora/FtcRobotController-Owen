@@ -243,7 +243,7 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d initialPose = new Pose2d(7.00, 70.00, Math.toRadians(-55));
+        Pose2d initialPose = new Pose2d(60, -16, Math.toRadians(210));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         shooter shooter = new shooter(hardwareMap);
         kick kick = new kick(hardwareMap);
@@ -269,15 +269,14 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
         waitForStart();
 // Trajectories
         TrajectoryActionBuilder intakeBottomSet = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(-5,-55))
-                .strafeToLinearHeading(new Vector2d(-5,-35),Math.toRadians(0));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-5,-55, Math.toRadians(0)))
-                .strafeTo(new Vector2d(27.5, -55),new TranslationalVelConstraint(4));
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-7,-45,Math.toRadians(-35)))
-                .strafeTo(new Vector2d(20,-15));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(27.5,-15,Math.toRadians(0)))
-                .strafeToLinearHeading(new Vector2d(-7,-45), Math.toRadians(-40));
-
+                .strafeToLinearHeading(new Vector2d(36,-20),Math.toRadians(270));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(36,-20, Math.toRadians(270)))
+                .strafeTo(new Vector2d(36,-30))
+                .strafeTo(new Vector2d(36,-52), new TranslationalVelConstraint(4));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(55,-16,Math.toRadians(210)))
+                .strafeTo(new Vector2d(36,-36));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(36,-52,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(55,-16), Math.toRadians(210));
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
                 shooter.spinUp(),

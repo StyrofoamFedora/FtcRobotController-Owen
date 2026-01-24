@@ -18,16 +18,18 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 //Class Define
 @Config
-@Autonomous(name = "CloseBLUE", group = "Autonomous")
-public class BLUECloseSpud4Auto extends LinearOpMode {
+@Autonomous(name = "AUTO_INTAKE_TEST", group = "Autonomous")
+public class IntakeTestingAuto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
     int apriltagid = 21;
@@ -199,11 +201,11 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
     }
     public class spindex {
         private final DcMotorEx spindexer;
-
+        private final DistanceSensor frontDistance;
         public spindex(HardwareMap hardwareMap) {
             spindexer = hardwareMap.get(DcMotorEx.class, "topIntake");
             spindexer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+            frontDistance = hardwareMap.get(DistanceSensor.class,"frontSlot");
         }
         public class NextSlot implements Action {
             private boolean initialized = false;
@@ -237,6 +239,23 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
         }
         public Action prevSlot() {
             return new PrevSlot();
+        }
+        public class AutoIntake implements Action {
+            private boolean initialized = false;
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+
+                    initialized = true;
+                }
+                if (frontDistance.getDistance(DistanceUnit.CM)>8){
+                    return true;
+                }
+                else{return false;}
+            }
+        }
+        public Action autoIntake() {
+            return new AutoIntake();
         }
     }
 
@@ -283,77 +302,19 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
 
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
-                shooter.spinUp(),
-                shootSet1.build(),
-                new SequentialAction(
-                        new SleepAction(0),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(0.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(1),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(0.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown()
-
-                ),
-                intakeTopSet.build(),
-                shooter.spinDown(),
                 combine.intake(),
                 new SleepAction(.5),
                 new ParallelAction(
-                        intakingTop.build(),
                         new SequentialAction(
-                                new SleepAction(0.75),
+                                spindex.autoIntake(),
                                 spindex.nextSlot(),
-                                new SleepAction(.5),
+                               spindex.autoIntake(),
                                 spindex.nextSlot(),
-                                new SleepAction(1),
-                                spindex.nextSlot(),
-                                new SleepAction(.5)
+                                spindex.autoIntake(),
+                                spindex.nextSlot()
                         )
                 ),
-                combine.holdtake(),
-                shooter.spinUp(),
-                shootSet2.build(),
-                new SequentialAction(
-                        new SleepAction(0),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
-                        kick.kickDown()
-                ),
-                outsideSet.build()
+                combine.holdtake()
         ));
     }
 }

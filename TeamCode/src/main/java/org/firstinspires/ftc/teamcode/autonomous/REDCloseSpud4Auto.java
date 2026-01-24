@@ -243,7 +243,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d initialPose = new Pose2d(-7.00, -70.00, Math.toRadians(90.00));
+        Pose2d initialPose = new Pose2d(-56, 46, Math.toRadians(130));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         shooter shooter = new shooter(hardwareMap);
         kick kick = new kick(hardwareMap);
@@ -268,19 +268,18 @@ public class REDCloseSpud4Auto extends LinearOpMode {
         telemetry.update();
         waitForStart();
 // Trajectories
-        TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-7,-50), Math.toRadians(85));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-7,-50, Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-7,-35), Math.toRadians(220))
-                .waitSeconds(0.2);
-        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-7,-35, Math.toRadians(-35)))
-                .strafeToLinearHeading(new Vector2d(5,-15),Math.toRadians(180));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(5,-15, Math.toRadians(180)))
-                .strafeTo(new Vector2d(-27.5, -15),new TranslationalVelConstraint(4));
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-7,-45,Math.toRadians(-35)))
-                .strafeTo(new Vector2d(20,-15));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-27.5,-15,Math.toRadians(180)))
-                .strafeToLinearHeading(new Vector2d(7,-45), Math.toRadians(220));
+
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(initialPose)
+                .strafeToLinearHeading(new Vector2d(-30,20),Math.toRadians(130));
+        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,20, Math.toRadians(130)))
+                .strafeToLinearHeading(new Vector2d(-15,20),Math.toRadians(90));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-15,20, Math.toRadians(90)))
+                .strafeTo(new Vector2d(-15,30))
+                .strafeTo(new Vector2d(-15,52), new TranslationalVelConstraint(4));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-30,20,Math.toRadians(130)))
+                .strafeTo(new Vector2d(0,40));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-15,52,Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(-30,20), Math.toRadians(130));
 
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
@@ -302,33 +301,22 @@ public class REDCloseSpud4Auto extends LinearOpMode {
                         new SleepAction(1),
                         kick.kickUp(),
                         new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(0.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
                         kick.kickDown()
 
                 ),
                 intakeTopSet.build(),
-                shooter.spinDown(),
                 combine.intake(),
                 new SleepAction(.5),
                 new ParallelAction(
                         intakingTop.build(),
                         new SequentialAction(
-                                new SleepAction(1),
+                                new SleepAction(1.6),
                                 spindex.nextSlot(),
                                 new SleepAction(.5),
-                                spindex.nextSlot(),
-                                new SleepAction(1),
-                                spindex.nextSlot(),
-                                new SleepAction(.5)
+                                spindex.nextSlot()
                         )
                 ),
                 combine.holdtake(),
-                shooter.spinUp(),
                 shootSet2.build(),
                 new SequentialAction(
                         new SleepAction(0),
@@ -346,14 +334,10 @@ public class REDCloseSpud4Auto extends LinearOpMode {
                         new SleepAction(1),
                         kick.kickUp(),
                         new SleepAction(0.2),
-                        kick.kickDown(),
-                        new SleepAction(.5),
-                        spindex.nextSlot(),
-                        new SleepAction(1),
-                        kick.kickUp(),
-                        new SleepAction(0.2),
                         kick.kickDown()
-                )
+
+                ),
+                outsideSet.build()
         ));
     }
 }
