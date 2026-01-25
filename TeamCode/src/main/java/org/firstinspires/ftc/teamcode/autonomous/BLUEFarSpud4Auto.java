@@ -18,11 +18,19 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
 
 //Class Define
 @Config
@@ -35,29 +43,60 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
     int slotTicks = CPR/3;
 
     //Set up Actions
-    //public class eyes{
-        /*private WebcamName cam;
-        private AprilTagProcessor aprilTagProcessor;
-        public eyes(HardwareMap hardwareMap){
-            cam = hardwareMap.get(WebcamName.class, "cam");
+    public class Eyes {
+        public final AprilTagProcessor aprilTag;
+        public final VisionPortal visionPortal;
+        public int detectedTag = -1;
+        public AprilTagDetection lastDetection = null;
+        public Eyes(HardwareMap hardwareMap) {
+            aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+            visionPortal = VisionPortal.easyCreateWithDefaults(
+                    hardwareMap.get(WebcamName.class, "eyes"), aprilTag
+            );
         }
-        public class Detect implements Action{
-            public AprilTagProcessor aprilTagProcessor;
-            public Detect(AprilTagProcessor processor) {
-                this.aprilTagProcessor = processor;
-            }
-            public boolean run(@NonNull TelemetryPacket packet) {
-                List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-                if (!detections.isEmpty()) {
-                    AprilTagDetection ob = detections.get(0);
-                    apriltagid = ob.id;
-                    packet.put("ATID", apriltagid);
-                }
-                return false;
+        /* Poll AprilTag detections */
+        public void update() {
+            List<AprilTagDetection> detections = aprilTag.getDetections();
+            if (!detections.isEmpty()) {
+                lastDetection = detections.get(0);
+                detectedTag = lastDetection.id;
             }
         }
-        public Action detect() {return new Detect(aprilTagProcessor);}
-    }*/
+
+        /* Optional cleanup */
+        public void stop() {
+            visionPortal.close();
+        }
+    }
+    public class WaitForTagAction implements Action {
+
+        private final Eyes eyes;
+        private final long timeoutMs;
+        private long startTime = 0;
+
+        public WaitForTagAction(Eyes eyes, long timeoutMs) {
+            this.eyes = eyes;
+            this.timeoutMs = timeoutMs;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+
+            if (startTime == 0) {
+                startTime = System.currentTimeMillis();
+            }
+
+            eyes.update();
+
+            packet.put("AprilTag ID", eyes.detectedTag);
+
+            boolean timedOut =
+                    System.currentTimeMillis() - startTime >= timeoutMs;
+
+            // keep running while no tag and not timed out
+            return eyes.detectedTag == -1 && !timedOut;
+        }
+    }
     public class shooter {
         private final DcMotorEx motor1;
 
@@ -199,18 +238,21 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
     }
     public class spindex {
         private final DcMotorEx spindexer;
+        private final DistanceSensor frontDistance;
 
         public spindex(HardwareMap hardwareMap) {
             spindexer = hardwareMap.get(DcMotorEx.class, "topIntake");
             spindexer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+            frontDistance = hardwareMap.get(DistanceSensor.class, "frontSlot");
         }
+
         public class NextSlot implements Action {
             private boolean initialized = false;
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+slotTicks);
+                    spindexer.setTargetPosition(spindexer.getCurrentPosition() + slotTicks);
                     spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                     spindexer.setPower(.3);
                     initialized = true;
@@ -219,15 +261,18 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
                 return false;
             }
         }
+
         public Action nextSlot() {
             return new NextSlot();
         }
+
         public class PrevSlot implements Action {
             private boolean initialized = false;
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()-slotTicks);
+                    spindexer.setTargetPosition(spindexer.getCurrentPosition() - slotTicks);
                     spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
                     spindexer.setPower(.3);
                     initialized = true;
@@ -235,8 +280,29 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
                 return false;
             }
         }
+
         public Action prevSlot() {
             return new PrevSlot();
+        }
+
+        public class AutoIntake implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+
+                    initialized = true;
+                }
+                if (frontDistance.getDistance(DistanceUnit.CM) > 8) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        public Action autoIntake() {
+            return new AutoIntake();
         }
     }
 
@@ -249,12 +315,8 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
         kick kick = new kick(hardwareMap);
         combine combine = new combine(hardwareMap);
         spindex spindex = new spindex(hardwareMap);
-        /*eyes eyes = new eyes(hardwareMap);
-        AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder().build();
-        VisionPortal visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "cam"))
-                .addProcessor(tagProcessor)
-                .build();*/
+        Eyes eyes = new Eyes(hardwareMap);
+
         while (!isStopRequested() && !opModeIsActive()) {
             int position = visionOutputPosition;
             telemetry.addData("Position during Init", position);
@@ -277,6 +339,16 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
                 .strafeTo(new Vector2d(36,-36));
         TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(36,-52,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(55,-16), Math.toRadians(210));
+        Action waitForTag = new WaitForTagAction(eyes,1500);
+        Action unloadBalls =  new SequentialAction(
+                kick.kickUp(), new SleepAction(0.2),
+                kick.kickDown(), new SleepAction(0.5),
+                spindex.nextSlot(), new SleepAction(1),
+                kick.kickUp(), new SleepAction(0.2),
+                kick.kickDown(), new SleepAction(1),
+                spindex.nextSlot(), new SleepAction(1),
+                kick.kickUp(), new SleepAction(0.2),
+                kick.kickDown());
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
                 shooter.spinUp(),
@@ -349,5 +421,13 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
                         kick.kickDown()
                 )
         ));
+        Action ballOrganize;
+        if (eyes.detectedTag==21){
+            ballOrganize = spindex.nextSlot();
+        } else if (eyes.detectedTag==23) {
+            ballOrganize = spindex.prevSlot();
+        } else  {
+            ballOrganize = new SleepAction(1);
+        }
     }
 }

@@ -35,7 +35,7 @@ import java.util.List;
 
 //Class Define
 @Config
-@Autonomous(name = "AUTO_INTAKE_TEST", group = "Autonomous")
+@Autonomous(name = "AUTO_VISION_TEST", group = "Autonomous")
 public class VisionTestingAuto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
@@ -45,34 +45,26 @@ public class VisionTestingAuto extends LinearOpMode {
 
     //Set up Actions
     public class Eyes {
-
         public final AprilTagProcessor aprilTag;
         public final VisionPortal visionPortal;
-
         public int detectedTag = -1;
         public AprilTagDetection lastDetection = null;
-
         public Eyes(HardwareMap hardwareMap) {
-
             aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-
             visionPortal = VisionPortal.easyCreateWithDefaults(
-                    hardwareMap.get(WebcamName.class, "eyes"),
-                    aprilTag
+                    hardwareMap.get(WebcamName.class, "eyes"), aprilTag
             );
         }
-
-        /** Poll AprilTag detections */
+        /* Poll AprilTag detections */
         public void update() {
             List<AprilTagDetection> detections = aprilTag.getDetections();
-
             if (!detections.isEmpty()) {
                 lastDetection = detections.get(0);
                 detectedTag = lastDetection.id;
             }
         }
 
-        /** Optional cleanup */
+        /* Optional cleanup */
         public void stop() {
             visionPortal.close();
         }
