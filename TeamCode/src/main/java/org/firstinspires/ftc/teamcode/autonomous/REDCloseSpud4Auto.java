@@ -93,7 +93,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
                     System.currentTimeMillis() - startTime >= timeoutMs;
 
             // keep running while no tag and not timed out
-            return eyes.detectedTag == -1 && !timedOut;
+            return eyes.detectedTag == 22 && !timedOut;
         }
     }
     public class shooter {
@@ -328,8 +328,8 @@ public class REDCloseSpud4Auto extends LinearOpMode {
         waitForStart();
 // Trajectories
         TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-30,20),Math.toRadians(180));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-30,20,Math.toRadians(180)))
+                .strafeToLinearHeading(new Vector2d(-35,15),Math.toRadians(190));
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-35,15,Math.toRadians(190)))
                 .strafeToLinearHeading(new Vector2d(-30,20),Math.toRadians(130));
         TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,20, Math.toRadians(130)))
                 .strafeToLinearHeading(new Vector2d(-15,20),Math.toRadians(90));
@@ -356,7 +356,8 @@ public class REDCloseSpud4Auto extends LinearOpMode {
         Actions.runBlocking(new SequentialAction(
                 shooter.spinUp(),
                 visionSet.build(),
-                waitForTag
+                new SleepAction(5)
+                //waitForTag
         ));
         Action ballOrganize;
         if (eyes.detectedTag==21){
