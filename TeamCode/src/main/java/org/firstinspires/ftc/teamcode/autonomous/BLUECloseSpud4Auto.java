@@ -331,8 +331,8 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
         waitForStart();
 // Trajectories
         TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-35,-25),Math.toRadians(170));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-35,-25,Math.toRadians(170)))
+                .strafeToLinearHeading(new Vector2d(-35,-25),Math.toRadians(160));
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-35,-25,Math.toRadians(160)))
                 .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(228));
         TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(228)))
                 .strafeToLinearHeading(new Vector2d(-11,-20),Math.toRadians(270));

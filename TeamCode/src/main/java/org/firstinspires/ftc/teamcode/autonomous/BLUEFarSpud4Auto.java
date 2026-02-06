@@ -384,13 +384,13 @@ public class BLUEFarSpud4Auto extends LinearOpMode {
                 new ParallelAction(
                         intakingTop.build(),
                         new SequentialAction(
-                                new SleepAction(1),
+                                spindex.autoIntake(),
                                 spindex.nextSlot(),
-                                new SleepAction(.5),
+                                spindex.autoIntake(),
                                 spindex.nextSlot(),
-                                new SleepAction(1),
-                                spindex.nextSlot(),
-                                new SleepAction(.5)
+                                spindex.autoIntake()
+
+
                         )
                 ),
                 combine.holdtake(),

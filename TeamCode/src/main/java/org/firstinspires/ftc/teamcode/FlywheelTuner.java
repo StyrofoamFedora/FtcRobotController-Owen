@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
@@ -28,7 +29,8 @@ public class FlywheelTuner extends OpMode {
     // right before the opmode, and use setVelocity instead of setPower
     // You may have to have it in your robot class, idrk how that works
 
-    public DcMotorEx fly;
+
+
     //Target Velocity should be in the thousands (It's in Ticks per Second, found on your motor)
     //Using a base REV motor (28 Ticks per Revolution), at likely a few thousand RPM (3000) gets us a...
     //          TargetVelocity of 1400
@@ -41,12 +43,13 @@ public class FlywheelTuner extends OpMode {
     double[] stepSizes = {10.0,1.0,0.1,0.01,0.001};
     int stepIndex = 1;
 
-
+    public DcMotorEx fly;
 
     @Override
     public void init(){
 
-        DcMotorEx fly = hardwareMap.get(DcMotorEx.class,"fly");
+        fly = hardwareMap.get(DcMotorEx.class,"fly");
+        fly.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         fly.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER,pidfCoefficients);
 
@@ -74,7 +77,7 @@ public class FlywheelTuner extends OpMode {
         fly.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER,pidfCoefficients);
         double CurrentVelocity = fly.getVelocity();
         double error = TargetVelocity - CurrentVelocity;
-
+        fly.setVelocity(TargetVelocity);
 
         telemetry.addData("Target Velocity",TargetVelocity);
         telemetry.addData("Current Velocity",CurrentVelocity);

@@ -3,13 +3,19 @@ package org.firstinspires.ftc.teamcode.tele;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp
 public class NormalMecanumTeleOp extends LinearOpMode {
@@ -17,25 +23,28 @@ public class NormalMecanumTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         // Make sure your ID's match your configuration
-         DcMotor backLeftMotor = hardwareMap.get(DcMotor.class,"left_back_drive");
-         DcMotor frontRightMotor = hardwareMap.get(DcMotor.class, "right_front_drive");
-         DcMotor backRightMotor = hardwareMap.get(DcMotor.class,"right_back_drive");
-         DcMotor frontLeftMotor = hardwareMap.get(DcMotor.class,"left_front_drive");
-         DcMotorEx rightFly = hardwareMap.get(DcMotorEx.class,"rightFly");
-         //DcMotorEx leftFly = hardwareMap.get(DcMotorEx.class,"leftFly");
-         DcMotorEx spindexer = hardwareMap.get(DcMotorEx.class,"topIntake");
-         DcMotor Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
-         Servo kick = hardwareMap.servo.get("ethan");
-         Servo RGB = hardwareMap.servo.get("rgb");
-        //leftFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        DcMotor backLeftMotor = hardwareMap.get(DcMotor.class,"left_back_drive");
+        DcMotor frontRightMotor = hardwareMap.get(DcMotor.class, "right_front_drive");
+        DcMotor backRightMotor = hardwareMap.get(DcMotor.class,"right_back_drive");
+        DcMotor frontLeftMotor = hardwareMap.get(DcMotor.class,"left_front_drive");
+        DcMotorEx rightFly = hardwareMap.get(DcMotorEx.class,"rightFly");
+        DcMotorEx spindexer = hardwareMap.get(DcMotorEx.class,"topIntake");
+        DcMotor Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
+        Servo kick = hardwareMap.servo.get("ethan");
+        Servo RGB1 = hardwareMap.servo.get("rgb");
+        Servo RGB2 = hardwareMap.servo.get("rgb2");
+        ColorRangeSensor shootColor = hardwareMap.get(ColorRangeSensor.class, "color");
+        DistanceSensor frontDistance = hardwareMap.get(DistanceSensor.class,"frontSlot");
         rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         spindexer.setTargetPositionTolerance(2);
         spindexer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         spindexer.setTargetPosition(0);
-
-
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // CHECK IF NEEDED, FOR IF MOTORS ARE BACKWARDS
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -66,8 +75,10 @@ public class NormalMecanumTeleOp extends LinearOpMode {
         int slotOne = 1;
         int slotTwo = 1;
         int slotThree = 2;
-        int currentIntTick = 0;
+        int currentIntTick;
         double currentTick = 0;
+        String shootBall;
+
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
         rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         waitForStart();
@@ -85,10 +96,12 @@ public class NormalMecanumTeleOp extends LinearOpMode {
 
             //Take values from sticks
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x*1.1;
-            double rx = gamepad1.right_stick_x*0.8;
+            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = gamepad1.right_stick_x * 0.8;
 
-            // rationalize the motor power to be less than 1
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (y + x + rx) / denominator;
             double backLeftPower = (y - x + rx) / denominator;
@@ -100,27 +113,9 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){intakePower=-0.8;}//Outtake
             if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
+
             // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
-            /*if (currentGamepad2.x && !previousGamepad2.x){
-                if(slotOne == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));
-                }else if(slotTwo == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-2)));
-                }
-                else if(slotThree == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));
-                }
-            }//go to next Purple ball
-            if (currentGamepad2.a && !previousGamepad2.a){
-                if(slotOne == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));}
-                else if(slotTwo == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-2)));}
-                else if(slotThree == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));}
-                
-            }*///go to next green ball
-            if (gamepad2.dpadLeftWasPressed()){
+            if (gamepad2.dpadLeftWasPressed() && !(kick.getPosition()<0.8)){
                 currentTick-=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
@@ -129,8 +124,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
                 ballSlot -= 1;
 
             } //Previous Ball Slot
-            if (gamepad2.dpadRightWasPressed()){
-                currentTick-=slotTicks;
+            if (gamepad2.dpadRightWasPressed() && !(kick.getPosition()<0.8)){
+                currentTick+=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -140,16 +135,26 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (gamepad2.yWasPressed()){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
             if (gamepad2.bWasPressed()){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
             //Rest of the Gamepad2 controls {Shooter[shooting]}
-            if (currentGamepad2.right_trigger>0.2 && previousGamepad2.right_trigger<0.2){kick.setPosition(0);}// Shoot
-            if (currentGamepad2.right_trigger<0.2 && previousGamepad2.right_trigger>0.2){kick.setPosition(1);}// UnSHoot
-            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 1200;}//Spin Up
+            if (gamepad2.aWasPressed() && (!((spindexer.getCurrentPosition()/slotTicks)%120<110) || !((spindexer.getCurrentPosition()/slotTicks)%120>10))){kick.setPosition(0);}// Shoot
+            if (gamepad2.aWasReleased()){kick.setPosition(1);}// UnSHoot
+            if (gamepad2.bWasPressed()){targetFlywheelVelo = 1200;}//Spin Up
             if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
             if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += 20;} //Increase Power
             if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
           
             //PID Loop for motor velocity
-            if (Math.abs(targetFlywheelVelo)>rightFly.getVelocity()){RGB.setPosition(.28);}//Set LED to RED
-            else{RGB.setPosition(.5);} //Set LED to GREEN
+            if (targetFlywheelVelo == 1200){RGB2.setPosition(.5);}//Set LED to Green
+            else{RGB2.setPosition(.28);} //Set LED to RED
+
+            double hue = JavaUtil.colorToHue(shootColor.getNormalizedColors().toColor());
+            if(hue < 80){shootBall = "None"; }
+            else if (hue < 200) {shootBall = "Green"; }
+            else if (hue < 350){shootBall = "Purple"; }
+            else {shootBall = "None"; }
+
+            if(shootBall.equals("Green")){RGB1.setPosition(.5);}//Set LED to Green
+            else if (shootBall.equals("Purple")) {RGB1.setPosition(.72);}
+            else{RGB1.setPosition(.5);}
 
             //Run everything
             frontLeftMotor.setPower(frontLeftPower);
@@ -170,6 +175,8 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             telemetry.addData("Slot1",slotOne);
             telemetry.addData("Slot2",slotTwo);
             telemetry.addData("Slot 3",slotThree);
+            telemetry.addData("Distance",frontDistance.getDistance(DistanceUnit.CM));
+            telemetry.addData("Color", shootBall);
             telemetry.update();
         }
     }

@@ -22,17 +22,14 @@ public class TESTINGMecanumTeleOp extends LinearOpMode {
          DcMotor backRightMotor = hardwareMap.get(DcMotor.class,"back_right_drive");
          DcMotor frontLeftMotor = hardwareMap.get(DcMotor.class,"front_left_drive");
          DcMotorEx rightFly = hardwareMap.get(DcMotorEx.class,"fly");
-         //DcMotorEx leftFly = hardwareMap.get(DcMotorEx.class,"leftFly");
+         DcMotorEx leftFly = hardwareMap.get(DcMotorEx.class,"frontIntake");
          DcMotorEx spindexer = hardwareMap.get(DcMotorEx.class,"intake");
          DcMotor Intake = hardwareMap.get(DcMotor.class, "feedFly");
 
-        //leftFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        leftFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        spindexer.setTargetPositionTolerance(2);
-        spindexer.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        spindexer.setTargetPosition(0);
+        rightFly.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
 
@@ -44,7 +41,7 @@ public class TESTINGMecanumTeleOp extends LinearOpMode {
         IMU imu = hardwareMap.get(IMU.class, "imu");
         // Adjust the orientation parameters to match your robot
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
         imu.initialize(parameters);
 
@@ -58,8 +55,8 @@ public class TESTINGMecanumTeleOp extends LinearOpMode {
         double targetFlywheelVelo = 0;
         double intakePower = 0;
         int ballSlot = 0;
-        double P = 75;
-        double F = 13.2;
+        double P = 115;
+        double F = 15;
         double CPR = 537.7;
         double slotTicks = CPR/3;
         int slotOne = 1;
@@ -120,27 +117,17 @@ public class TESTINGMecanumTeleOp extends LinearOpMode {
                 
             }*///go to next green ball
             if (gamepad2.dpadLeftWasPressed()){
-                currentTick-=slotTicks;
-                currentIntTick = (int)Math.round(currentTick);
-                spindexer.setTargetPosition(currentIntTick);
-                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.3);
-                ballSlot -= 1;
+
 
             } //Previous Ball Slot
             if (gamepad2.dpadRightWasPressed()){
-                currentTick-=slotTicks;
-                currentIntTick = (int)Math.round(currentTick);
-                spindexer.setTargetPosition(currentIntTick);
-                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.3);
-                ballSlot += 1;
+
             } //Next Ball Slot
             if (gamepad2.yWasPressed()){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
             if (gamepad2.bWasPressed()){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
             //Rest of the Gamepad2 controls {Shooter[shooting]}
 
-            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 1200;}//Spin Up
+            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 1400;}//Spin Up
             if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
             if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += 20;} //Increase Power
             if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
@@ -155,11 +142,11 @@ public class TESTINGMecanumTeleOp extends LinearOpMode {
             backRightMotor.setPower(backRightPower);
             rightFly.setVelocity(-targetFlywheelVelo);
             Intake.setPower(intakePower);
-            spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-            spindexer.setPower(.3);
+            spindexer.setPower(intakePower);
+            leftFly.setPower(intakePower);
 
             //Set up
-            ballSlot = Math.abs(ballSlot%3);
+
 
             //telemetry
             telemetry.addData("Flywheel %",targetFlywheelVelo);

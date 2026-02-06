@@ -75,6 +75,9 @@ public class MeepMeepTesting {
                 .build());
 
         RedFarBot.runAction(RedFarBot.getDrive().actionBuilder(new Pose2d(60, 16, Math.toRadians(150)))
+                .strafeToLinearHeading(new Vector2d(55,20),Math.toRadians(190))
+                .waitSeconds(2)
+                .strafeToLinearHeading(new Vector2d(57,18),Math.toRadians(150))
                 .waitSeconds(6)
                 .strafeToLinearHeading(new Vector2d(36,20),Math.toRadians(90))
                 .strafeTo(new Vector2d(36,30))
