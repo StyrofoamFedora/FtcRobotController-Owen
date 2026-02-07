@@ -41,7 +41,7 @@ public class MeepMeepTesting {
         BlueCloseBot.runAction(BlueCloseBot.getDrive().actionBuilder(new Pose2d(-56, -46, Math.toRadians(233.5)))
                 .waitSeconds(1)
                 .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(233.5))
-                .waitSeconds(5)
+                .waitSeconds(5)//shoot balls
                 .strafeToLinearHeading(new Vector2d(-11,-20),Math.toRadians(270))
                 .strafeTo(new Vector2d(-11,-30))
                 .strafeTo(new Vector2d(-11,-52), new TranslationalVelConstraint(4))
@@ -54,7 +54,7 @@ public class MeepMeepTesting {
         RedCloseBot.runAction(RedCloseBot.getDrive().actionBuilder(new Pose2d(-56, 46, Math.toRadians(130)))
                 .waitSeconds(1)
                 .strafeToLinearHeading(new Vector2d(-30,20),Math.toRadians(130))
-                .waitSeconds(5)
+                .waitSeconds(5) //shoot balls
                 .strafeToLinearHeading(new Vector2d(-11,20),Math.toRadians(90))
                 .strafeTo(new Vector2d(-11,30))
                 .strafeTo(new Vector2d(-11,52), new TranslationalVelConstraint(4))
@@ -65,7 +65,7 @@ public class MeepMeepTesting {
                 .build());
 
         BlueFarBot.runAction(BlueFarBot.getDrive().actionBuilder(new Pose2d(60, -16, Math.toRadians(210)))
-                .waitSeconds(6)
+                .waitSeconds(6)//shooting balls
                 .strafeToLinearHeading(new Vector2d(36,-20),Math.toRadians(270))
                 .strafeTo(new Vector2d(36,-30))
                 .strafeTo(new Vector2d(36,-52), new TranslationalVelConstraint(4))
@@ -78,7 +78,7 @@ public class MeepMeepTesting {
                 .strafeToLinearHeading(new Vector2d(55,20),Math.toRadians(190))
                 .waitSeconds(2)
                 .strafeToLinearHeading(new Vector2d(57,18),Math.toRadians(150))
-                .waitSeconds(6)
+                .waitSeconds(6)//shooting balls
                 .strafeToLinearHeading(new Vector2d(36,20),Math.toRadians(90))
                 .strafeTo(new Vector2d(36,30))
                 .strafeTo(new Vector2d(36,52), new TranslationalVelConstraint(4))

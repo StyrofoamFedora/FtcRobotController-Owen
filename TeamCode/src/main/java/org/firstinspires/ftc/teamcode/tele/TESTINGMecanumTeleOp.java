@@ -1,160 +1,84 @@
 package org.firstinspires.ftc.teamcode.tele;
 
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
-@TeleOp
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.Webcam;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
+@Config
+@TeleOp(name = "New Tele-op", group = "Driver Op Mode")
 public class TESTINGMecanumTeleOp extends LinearOpMode {
+    private Robot robot;
+    boolean isTargetLock = false;
+    double axial = 0;
+    double lateral = 0;
+    double yaw = 0;
+    private double flywheelControl = 0;
+    double intakeControl = 0;
+    private final Webcam aprilTagWebcam = new Webcam();
+
     @Override
-    public void runOpMode() throws InterruptedException {
-
-        // Make sure your ID's match your configuration
-         DcMotor backLeftMotor = hardwareMap.get(DcMotor.class,"back_left_drive");
-         DcMotor frontRightMotor = hardwareMap.get(DcMotor.class, "front_right_drive");
-         DcMotor backRightMotor = hardwareMap.get(DcMotor.class,"back_right_drive");
-         DcMotor frontLeftMotor = hardwareMap.get(DcMotor.class,"front_left_drive");
-         DcMotorEx rightFly = hardwareMap.get(DcMotorEx.class,"fly");
-         DcMotorEx leftFly = hardwareMap.get(DcMotorEx.class,"frontIntake");
-         DcMotorEx spindexer = hardwareMap.get(DcMotorEx.class,"intake");
-         DcMotor Intake = hardwareMap.get(DcMotor.class, "feedFly");
-
-        leftFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        rightFly.setDirection(DcMotorSimple.Direction.REVERSE);
-
-
-
-        // CHECK IF NEEDED, FOR IF MOTORS ARE BACKWARDS
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        // Retrieve the IMU from the hardware map
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        // Adjust the orientation parameters to match your robot
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.BACKWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
-        imu.initialize(parameters);
-
-        //Gamepad Setups for Rising Edge Detectors (just on triggers)
-        Gamepad currentGamepad1 = new Gamepad();
-        Gamepad currentGamepad2 = new Gamepad();
-        Gamepad previousGamepad1 = new Gamepad();
-        Gamepad previousGamepad2 = new Gamepad();
-
-        //Set Values for PID and Intake
-        double targetFlywheelVelo = 0;
-        double intakePower = 0;
-        int ballSlot = 0;
-        double P = 115;
-        double F = 15;
-        double CPR = 537.7;
-        double slotTicks = CPR/3;
-        int slotOne = 1;
-        int slotTwo = 1;
-        int slotThree = 2;
-        int currentIntTick = 0;
-        double currentTick = 0;
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
-        rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+    public void runOpMode(){
+        robot = new Robot();
+        robot.initialize((hardwareMap));
+        aprilTagWebcam.init(hardwareMap,telemetry);
         waitForStart();
-
-        if (isStopRequested()) return;
-
-        //Tele-op Loop
-        while (opModeIsActive()) {
-
-            //Set up game pads
-            previousGamepad1.copy(currentGamepad1);
-            previousGamepad2.copy(currentGamepad2);
-            currentGamepad1.copy(gamepad1);
-            currentGamepad2.copy(gamepad2);
-
-            //Take values from sticks
-            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x*1.1;
-            double rx = gamepad1.right_stick_x*0.8;
-
-            // rationalize the motor power to be less than 1
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator;
-            double backLeftPower = (y - x + rx) / denominator;
-            double frontRightPower = (y - x - rx) / denominator;
-            double backRightPower = (y + x - rx) / denominator;
-
-            //Match Buttons Pressed GamePad 1 (Driver [non-driving])
-            if (currentGamepad1.right_trigger>0.2 && previousGamepad1.right_trigger<0.2){intakePower = 0.8;}//Intake
-            if (currentGamepad1.left_trigger>0.2 && previousGamepad1.left_trigger<0.2){intakePower=-0.8;}//Outtake
-            if (currentGamepad1.right_trigger<0.2 && previousGamepad1.right_trigger>0.2){intakePower=0;}//Intake Shutoff
-            if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
-            // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
-            /*if (currentGamepad2.x && !previousGamepad2.x){
-                if(slotOne == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));
-                }else if(slotTwo == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-2)));
-                }
-                else if(slotThree == 2){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));
-                }
-            }//go to next Purple ball
-            if (currentGamepad2.a && !previousGamepad2.a){
-                if(slotOne == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-1)));}
-                else if(slotTwo == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-2)));}
-                else if(slotThree == 1){
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+(slotTicks*(ballSlot-3)));}
-                
-            }*///go to next green ball
-            if (gamepad2.dpadLeftWasPressed()){
-
-
-            } //Previous Ball Slot
-            if (gamepad2.dpadRightWasPressed()){
-
-            } //Next Ball Slot
-            if (gamepad2.yWasPressed()){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
-            if (gamepad2.bWasPressed()){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
-            //Rest of the Gamepad2 controls {Shooter[shooting]}
-
-            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){targetFlywheelVelo = 1400;}//Spin Up
-            if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
-            if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += 20;} //Increase Power
-            if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
-          
-            //PID Loop for motor velocity
-
-
-            //Run everything
-            frontLeftMotor.setPower(frontLeftPower);
-            backLeftMotor.setPower(backLeftPower);
-            frontRightMotor.setPower(frontRightPower);
-            backRightMotor.setPower(backRightPower);
-            rightFly.setVelocity(-targetFlywheelVelo);
-            Intake.setPower(intakePower);
-            spindexer.setPower(intakePower);
-            leftFly.setPower(intakePower);
-
-            //Set up
-
-
-            //telemetry
-            telemetry.addData("Flywheel %",targetFlywheelVelo);
-            telemetry.addData("Current Slot",ballSlot);
-            telemetry.addData("Slot1",slotOne);
-            telemetry.addData("Slot2",slotTwo);
-            telemetry.addData("Slot 3",slotThree);
-            telemetry.update();
+        while (opModeIsActive()){
+            updateDrive();
+            updateFlywheel();
+            updateSpindex();
+            updateIntake();
+            updateKick();
+            robot.updateRGB();
+            robot.updateColorDistance();
         }
+    }
+    private void updateDrive(){
+        isTargetLock = !gamepad1.right_stick_button;
+        double error;
+        double goalX = 0;
+        if (isTargetLock){
+            aprilTagWebcam.update();
+            AprilTagDetection id20 = aprilTagWebcam.getTagBySpecificId(20);
+           if (id20 != null){
+               error = goalX - id20.ftcPose.bearing;
+               if (Math.abs(error) < 0.4){
+                   yaw = 0;
+                }else{
+                   yaw = Range.clip((error*0.005),-0.4,0.4);
+                }
+           }
+        }else {yaw = (1.0 * gamepad1.right_stick_x);} // Rotate
+        axial = (1.0 * gamepad1.left_stick_y); // FWD/REV
+        lateral = (0.8 * (gamepad1.left_stick_x)); // Strafing
+        robot.updateDriveMotors(axial, lateral, yaw);
+    }
+    private void updateFlywheel(){
+        if (gamepad2.left_bumper){flywheelControl = 1200;}
+        else if (gamepad2.right_bumper){flywheelControl = 1600;}
+        else if (gamepad2.a){flywheelControl = 0;}
+        if(gamepad2.dpadUpWasPressed()){flywheelControl+=20;}
+        if(gamepad2.dpadDownWasPressed()){flywheelControl-=20;}
+        robot.updateFlywheelMotors(flywheelControl);
+    }
+    private void updateIntake(){
+        if (gamepad1.left_trigger>0.2){intakeControl = -0.8;}
+        else if (gamepad1.right_trigger>0.2) {intakeControl=0.8;}
+        else {intakeControl=0;}
+        robot.updateIntakeMotors(intakeControl);
+    }
+    private void updateSpindex(){
+        if(gamepad2.dpadLeftWasPressed()){robot.updateSpindexSlot(1,0.3);}
+        else if (gamepad2.dpadRightWasPressed()){robot.updateSpindexSlot(-1,0.3);}
+        else if(gamepad2.xWasPressed()){robot.updateSpindexSlot(0.05,0.3);}
+        else if (gamepad2.yWasPressed()){robot.updateSpindexSlot(0.05,0.3);}
+    }
+    private void updateKick(){
+        if(gamepad2.right_trigger>0.2){robot.updateKickServo(0);}
+        else{robot.updateKickServo(1);}
     }
 }
