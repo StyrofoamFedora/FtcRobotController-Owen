@@ -50,18 +50,25 @@ public class TESTINGMecanumTeleOp extends LinearOpMode {
                 }else{
                    yaw = Range.clip((error*0.005),-0.4,0.4);
                 }
-           }
+           }else {yaw = (1.0 * gamepad1.right_stick_x);}
         }else {yaw = (1.0 * gamepad1.right_stick_x);} // Rotate
         axial = (1.0 * gamepad1.left_stick_y); // FWD/REV
         lateral = (0.8 * (gamepad1.left_stick_x)); // Strafing
         robot.updateDriveMotors(axial, lateral, yaw);
     }
     private void updateFlywheel(){
-        if (gamepad2.left_bumper){flywheelControl = 1200;}
-        else if (gamepad2.right_bumper){flywheelControl = 1600;}
-        else if (gamepad2.a){flywheelControl = 0;}
-        if(gamepad2.dpadUpWasPressed()){flywheelControl+=20;}
-        if(gamepad2.dpadDownWasPressed()){flywheelControl-=20;}
+       double goalDist;
+        if(isTargetLock) {
+            aprilTagWebcam.update();
+            AprilTagDetection id20 = aprilTagWebcam.getTagBySpecificId(20);
+            goalDist = Math.sqrt(Math.pow(id20.ftcPose.x,2)+Math.pow(id20.ftcPose.y,2));
+            flywheelControl = 1072.45*Math.pow(1.00332,goalDist);
+        }else{
+            if (gamepad2.left_bumper) {flywheelControl = 1200;}
+            else if (gamepad2.a) {flywheelControl = 0;}
+            if (gamepad2.dpadUpWasPressed()) {flywheelControl += 20;}
+            if (gamepad2.dpadDownWasPressed()) {flywheelControl -= 20;}
+        }
         robot.updateFlywheelMotors(flywheelControl);
     }
     private void updateIntake(){
