@@ -1,5 +1,4 @@
 package org.firstinspires.ftc.teamcode.autonomous;
-//Imports
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -18,18 +17,9 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
-
-//Class Define
 @Config
 @Autonomous(name = "AUTO_TEST", group = "Autonomous")
 public class TestingAutoRobot{
-    //Create Default Variables for Vision Sets
-    int visionOutputPosition = 0;
-    int apriltagid = 21;
-    static int CPR = 538;
-    static int slotTicks = CPR/3;
-
-    //Set up Actions
     public static class Eyes {
         public final AprilTagProcessor aprilTag;
         public final VisionPortal visionPortal;
@@ -50,10 +40,6 @@ public class TestingAutoRobot{
             }
         }
 
-        /* Optional cleanup */
-        public void stop() {
-            visionPortal.close();
-        }
     }
     public static class WaitForTagAction implements Action {
 
@@ -132,7 +118,7 @@ public class TestingAutoRobot{
         }
     }
     public static class kick {
-        private Servo kicker;
+        private final Servo kicker;
 
 
         public kick(HardwareMap hardwareMap) {
@@ -226,6 +212,8 @@ public class TestingAutoRobot{
     public static class spindex {
         private final DcMotorEx spindexer;
         private final DistanceSensor frontDistance;
+        static int CPR = 538;
+        static int slotTicks = CPR/3;
         public spindex(HardwareMap hardwareMap) {
             spindexer = hardwareMap.get(DcMotorEx.class, "topIntake");
             spindexer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -272,15 +260,11 @@ public class TestingAutoRobot{
 
                     initialized = true;
                 }
-                if (frontDistance.getDistance(DistanceUnit.CM)>8){
-                    return true;
-                }
-                else{return false;}
+                return frontDistance.getDistance(DistanceUnit.CM) > 8;
             }
         }
         public Action autoIntake() {
             return new AutoIntake();
         }
     }
-    //Set up Classes for Trajectory + Actions
 }
