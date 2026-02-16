@@ -323,8 +323,6 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
             telemetry.update();
             if (isStopRequested()) return;
         }
-
-
         int startPosition = visionOutputPosition;
         telemetry.addData("Starting Position", startPosition);
         telemetry.update();
