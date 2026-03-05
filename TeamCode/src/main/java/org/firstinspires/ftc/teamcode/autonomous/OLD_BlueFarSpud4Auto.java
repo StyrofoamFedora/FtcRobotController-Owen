@@ -34,8 +34,8 @@ import java.util.List;
 
 //Class Define
 @Config
-@Autonomous(name = "FarRED", group = "Autonomous")
-public class REDFarSpud4Auto extends LinearOpMode {
+@Autonomous(name = "OLDFarBLUE", group = "Autonomous")
+public class OLD_BlueFarSpud4Auto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
     int apriltagid = 21;
@@ -119,7 +119,7 @@ public class REDFarSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor1.setVelocity(-1580);
+                    motor1.setVelocity(-1500);
                     initialized = true;
                 }
 
@@ -309,13 +309,14 @@ public class REDFarSpud4Auto extends LinearOpMode {
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d initialPose = new Pose2d(60, 16, Math.toRadians(150));
+        Pose2d initialPose = new Pose2d(60, -16, Math.toRadians(210));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         shooter shooter = new shooter(hardwareMap);
         kick kick = new kick(hardwareMap);
         combine combine = new combine(hardwareMap);
         spindex spindex = new spindex(hardwareMap);
         Eyes eyes = new Eyes(hardwareMap);
+
         while (!isStopRequested() && !opModeIsActive()) {
             int position = visionOutputPosition;
             telemetry.addData("Position during Init", position);
@@ -329,19 +330,15 @@ public class REDFarSpud4Auto extends LinearOpMode {
         telemetry.update();
         waitForStart();
 // Trajectories
-       TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-               .strafeToLinearHeading(new Vector2d(55,20),Math.toRadians(190));
-       TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(55,20,Math.toRadians(190)))
-               .strafeToLinearHeading(new Vector2d(57,18),Math.toRadians(150));
-        TrajectoryActionBuilder intakeBottomSet = drive.actionBuilder(new Pose2d(57,18,Math.toRadians(150)))
-                .strafeToLinearHeading(new Vector2d(36,20),Math.toRadians(90));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(36,20, Math.toRadians(90)))
-                .strafeTo(new Vector2d(36,30))
-                .strafeTo(new Vector2d(36,45), new TranslationalVelConstraint(4));
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(55,16,Math.toRadians(150)))
-                .strafeTo(new Vector2d(36,36));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(36,45,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(55,16), Math.toRadians(150));
+        TrajectoryActionBuilder intakeBottomSet = drive.actionBuilder(initialPose)
+                .strafeToLinearHeading(new Vector2d(36,-20),Math.toRadians(270));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(36,-20, Math.toRadians(270)))
+                .strafeTo(new Vector2d(36,-30))
+                .strafeTo(new Vector2d(36,-52), new TranslationalVelConstraint(4));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(55,-16,Math.toRadians(210)))
+                .strafeTo(new Vector2d(36,-36));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(36,-52,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(55,-16), Math.toRadians(210));
         Action waitForTag = new WaitForTagAction(eyes,1500);
         Action unloadBalls =  new SequentialAction(
                 kick.kickUp(), new SleepAction(0.2),
@@ -355,21 +352,8 @@ public class REDFarSpud4Auto extends LinearOpMode {
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
                 shooter.spinUp(),
-                visionSet.build()
-                ));
-        Action ballOrganize;
-        if (eyes.detectedTag==21){
-            ballOrganize = spindex.nextSlot();
-        } else if (eyes.detectedTag==23) {
-            ballOrganize = spindex.prevSlot();
-        } else  {
-            ballOrganize = new SleepAction(0.1);
-        }
-        Actions.runBlocking(new SequentialAction(
                 new SequentialAction(
-                        ballOrganize,
-                        shootSet1.build(),
-                        new SleepAction(0.5),
+                        new SleepAction(2),
                         kick.kickUp(),
                         new SleepAction(0.2),
                         kick.kickDown(),
@@ -405,6 +389,8 @@ public class REDFarSpud4Auto extends LinearOpMode {
                                 spindex.autoIntake(),
                                 spindex.nextSlot(),
                                 spindex.autoIntake()
+
+
                         )
                 ),
                 combine.holdtake(),
@@ -435,5 +421,13 @@ public class REDFarSpud4Auto extends LinearOpMode {
                         kick.kickDown()
                 )
         ));
+        Action ballOrganize;
+        if (eyes.detectedTag==21){
+            ballOrganize = spindex.nextSlot();
+        } else if (eyes.detectedTag==23) {
+            ballOrganize = spindex.prevSlot();
+        } else  {
+            ballOrganize = new SleepAction(1);
+        }
     }
 }

@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.tele;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -12,13 +11,13 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-
+import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp
-public class NormalMecanumTeleOp extends LinearOpMode {
+public class OLDFieldCentricMecanumTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -75,12 +74,10 @@ public class NormalMecanumTeleOp extends LinearOpMode {
         int slotOne = 1;
         int slotTwo = 1;
         int slotThree = 2;
-        int currentIntTick;
+        int currentIntTick = 0;
         double currentTick = 0;
         String shootBall;
 
-        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P,0,0,F);
-        rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         waitForStart();
 
         if (isStopRequested()) return;
@@ -96,17 +93,24 @@ public class NormalMecanumTeleOp extends LinearOpMode {
 
             //Take values from sticks
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x * 0.8;
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x*0.8;
+
+            // reset the imu
+            if (gamepad1.options) {imu.resetYaw();}
+
+            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+            // Rotate the movement direction counter to the bot's rotation
+            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+            rotX = rotX * 1.1;  // Counteract imperfect strafing
 
             // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio,
-            // but only if at least one is out of the range [-1, 1]
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator;
-            double backLeftPower = (y - x + rx) / denominator;
-            double frontRightPower = (y - x - rx) / denominator;
-            double backRightPower = (y + x - rx) / denominator;
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+            double frontLeftPower = (rotY + rotX + rx) / denominator;
+            double backLeftPower = (rotY - rotX + rx) / denominator;
+            double frontRightPower = (rotY - rotX - rx) / denominator;
+            double backRightPower = (rotY + rotX - rx) / denominator;
 
             //Match Buttons Pressed GamePad 1 (Driver [non-driving])
             if (currentGamepad1.right_trigger>0.2 && previousGamepad1.right_trigger<0.2){intakePower = 0.8;}//Intake
@@ -115,7 +119,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (currentGamepad1.left_trigger<0.2 && previousGamepad1.left_trigger>0.2){intakePower=0;}//Outtake Shutoff
 
             // Match Buttons Pressed Gamepad 2 (Shooter[ball slots])
-            if (gamepad2.dpadLeftWasPressed() && !(kick.getPosition()<0.8)){
+            if (gamepad2.dpadLeftWasPressed()){
                 currentTick-=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
@@ -124,7 +128,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
                 ballSlot -= 1;
 
             } //Previous Ball Slot
-            if (gamepad2.dpadRightWasPressed() && !(kick.getPosition()<0.8)){
+            if (gamepad2.dpadRightWasPressed()){
                 currentTick+=slotTicks;
                 currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
@@ -135,12 +139,31 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             if (gamepad2.yWasPressed()){if(ballSlot == 0){slotOne = 1;}else if(ballSlot == 1){slotTwo = 1;}else if(ballSlot == 2){slotThree = 1;}}//Set Current slot Green
             if (gamepad2.bWasPressed()){if(ballSlot == 0){slotOne = 2;}else if(ballSlot == 1){slotTwo = 2;}else if(ballSlot == 2){slotThree = 2;}}//Set Current slot Purple
             //Rest of the Gamepad2 controls {Shooter[shooting]}
-            if (gamepad2.aWasPressed() && (!((spindexer.getCurrentPosition()/slotTicks)%120<110) || !((spindexer.getCurrentPosition()/slotTicks)%120>10))){kick.setPosition(0);}// Shoot
+            if (gamepad2.aWasPressed()){kick.setPosition(0);}// Shoot
             if (gamepad2.aWasReleased()){kick.setPosition(1);}// UnSHoot
-            if (gamepad2.bWasPressed()){targetFlywheelVelo = 1200;}//Spin Up
+            if (currentGamepad2.left_trigger>0.2 && previousGamepad2.left_trigger<0.2){
+                targetFlywheelVelo = 1200;
+                PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,13.2);
+                rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+            }//Spin Up
             if (gamepad2.leftBumperWasPressed()){ targetFlywheelVelo = 0;} //Spin Down
+            if (gamepad2.bWasPressed()){
+                targetFlywheelVelo = 1600;
+                PIDFCoefficients pidfCoefficients2 = new PIDFCoefficients(75,0,0,16);
+                rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients2);
+            }
             if (gamepad2.dpadUpWasPressed()){targetFlywheelVelo += 20;} //Increase Power
             if (gamepad2.dpadDownWasPressed()){targetFlywheelVelo -= 20;} //Decrease Power
+            if (gamepad2.xWasPressed()){currentTick-=2;
+                currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.3);}
+            if (gamepad2.yWasPressed()){currentTick+=2;
+                currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.3);}
           
             //PID Loop for motor velocity
             if (targetFlywheelVelo == 1200){RGB2.setPosition(.5);}//Set LED to Green
@@ -154,7 +177,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
 
             if(shootBall.equals("Green")){RGB1.setPosition(.5);}//Set LED to Green
             else if (shootBall.equals("Purple")) {RGB1.setPosition(.72);}
-            else{RGB1.setPosition(.5);}
+            else if (shootBall.equals("None")){RGB1.setPosition(0);}
 
             //Run everything
             frontLeftMotor.setPower(frontLeftPower);
@@ -177,6 +200,7 @@ public class NormalMecanumTeleOp extends LinearOpMode {
             telemetry.addData("Slot 3",slotThree);
             telemetry.addData("Distance",frontDistance.getDistance(DistanceUnit.CM));
             telemetry.addData("Color", shootBall);
+            telemetry.addData("Spindexer:", currentIntTick);
             telemetry.update();
         }
     }

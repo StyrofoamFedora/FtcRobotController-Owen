@@ -34,10 +34,11 @@ import java.util.List;
 
 //Class Define
 @Config
-@Autonomous(name = "CloseRED", group = "Autonomous")
-public class REDCloseSpud4Auto extends LinearOpMode {
+@Autonomous(name = "OLDCloseBLUE", group = "Autonomous")
+public class OLD_BlueCloseSpud4Auto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
+    int apriltagid = 21;
     int CPR = 538;
     int slotTicks = CPR/3;
 
@@ -93,7 +94,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
                     System.currentTimeMillis() - startTime >= timeoutMs;
 
             // keep running while no tag and not timed out
-            return eyes.detectedTag == 22 && !timedOut;
+            return eyes.detectedTag == -1 && !timedOut;
         }
     }
     public class shooter {
@@ -104,7 +105,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
         public shooter(HardwareMap hardwareMap) {
             motor1 = hardwareMap.get(DcMotorEx.class, "rightFly");
 
-            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,13.2);
+            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,13);
             motor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
 
@@ -118,7 +119,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor1.setVelocity(-1200);
+                    motor1.setVelocity(-1150);
                     initialized = true;
                 }
 
@@ -190,7 +191,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    intake.setPower(0.5);
+                    intake.setPower(0.4);
                     initialized = true;
                     sleep(500);
             }
@@ -308,7 +309,7 @@ public class REDCloseSpud4Auto extends LinearOpMode {
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d initialPose = new Pose2d(-56, 46, Math.toRadians(130));
+        Pose2d initialPose = new Pose2d(-56, -46, Math.toRadians(235.5));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         shooter shooter = new shooter(hardwareMap);
         kick kick = new kick(hardwareMap);
@@ -328,20 +329,20 @@ public class REDCloseSpud4Auto extends LinearOpMode {
         waitForStart();
 // Trajectories
         TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-35,15),Math.toRadians(210));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-35,15,Math.toRadians(210)))
-                .strafeToLinearHeading(new Vector2d(-30,20),Math.toRadians(135));
-        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,20, Math.toRadians(135)))
-                .strafeToLinearHeading(new Vector2d(-15,20),Math.toRadians(90));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-15,20, Math.toRadians(90)))
-                .strafeTo(new Vector2d(-15,30))
-                .strafeTo(new Vector2d(-15,45), new TranslationalVelConstraint(3));
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-30,20,Math.toRadians(135)))
-                .strafeTo(new Vector2d(0,40));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-15,52,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-30,20), Math.toRadians(135));
+                .strafeToLinearHeading(new Vector2d(-35,-25),Math.toRadians(160));
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-35,-25,Math.toRadians(160)))
+                .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(228));
+        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(228)))
+                .strafeToLinearHeading(new Vector2d(-11,-20),Math.toRadians(270));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-11,-20, Math.toRadians(270)))
+                .strafeTo(new Vector2d(-11,-30))
+                .strafeTo(new Vector2d(-11,-45), new TranslationalVelConstraint(3));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(230)))
+                .strafeTo(new Vector2d(0,-40));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-11,-45,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(228));
 
-        Action waitForTag = new REDCloseSpud4Auto.WaitForTagAction(eyes,1500);
+        Action waitForTag = new WaitForTagAction(eyes,1500);
         Action unloadBalls =  new SequentialAction(
                 kick.kickUp(), new SleepAction(0.5),
                 kick.kickDown(), new SleepAction(0.3),

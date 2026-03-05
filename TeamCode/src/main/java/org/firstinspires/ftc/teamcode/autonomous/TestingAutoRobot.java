@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -31,7 +32,6 @@ public class TestingAutoRobot{
                     hardwareMap.get(WebcamName.class, "eyes"), aprilTag
             );
         }
-        /* Poll AprilTag detections */
         public void update() {
             List<AprilTagDetection> detections = aprilTag.getDetections();
             if (!detections.isEmpty()) {
@@ -42,229 +42,130 @@ public class TestingAutoRobot{
 
     }
     public static class WaitForTagAction implements Action {
-
         private final Eyes eyes;
         private final long timeoutMs;
         private long startTime = 0;
-
         public WaitForTagAction(Eyes eyes, long timeoutMs) {
             this.eyes = eyes;
             this.timeoutMs = timeoutMs;
         }
-
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
 
             if (startTime == 0) {
                 startTime = System.currentTimeMillis();
             }
-
             eyes.update();
-
             packet.put("AprilTag ID", eyes.detectedTag);
-
-            boolean timedOut =
-                    System.currentTimeMillis() - startTime >= timeoutMs;
-
+            boolean timedOut = System.currentTimeMillis() - startTime >= timeoutMs;
             // keep running while no tag and not timed out
             return eyes.detectedTag == -1 && !timedOut;
         }
     }
     public static class shooter {
-        private final DcMotorEx motor1;
-
-
-
+        private final DcMotorEx fly;
         public shooter(HardwareMap hardwareMap) {
-            motor1 = hardwareMap.get(DcMotorEx.class, "rightFly");
-
-            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,13.2);
-            motor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-
-
+            fly = hardwareMap.get(DcMotorEx.class, "rightFly");
+            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75, 0, 0, 13.2);
+            fly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         }
-
-
-        public class SpinUp implements Action {
-            private boolean initialized = false;
-
-
+        public class SpinUpClose implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    motor1.setVelocity(-1200);
-                    initialized = true;
-                }
-
+                fly.setVelocity(-1200);
                 return false;
             }
-
-
+        }public Action spinUpClose() {
+            return new SpinUpClose();
         }
-        public Action spinUp() {
-            return new SpinUp();
-        }
-        public class SpinDown implements Action {
-
-
+        public class SpinUpFar implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                motor1.setVelocity(0);
+                fly.setVelocity(-1600);
                 return false;
             }
+        }public Action spinUpFar() {
+            return new SpinUpFar();
         }
-        public Action spinDown(){
-            return new SpinDown();
-        }
-    }
-    public static class kick {
-        private final Servo kicker;
-
-
-        public kick(HardwareMap hardwareMap) {
-            kicker = hardwareMap.get(Servo.class, "ethan");
-        }
-
-
-        public class kickDown implements Action {
+        public class Stop implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                kicker.setPosition(1);
-                new SleepAction(.1);
+                fly.setVelocity(0);
                 return false;
             }
-        }
-        public Action kickDown() {
-            return new kickDown();
-        }
-
-
-        public class kickUp implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                kicker.setPosition(0);
-                new SleepAction(.1);
-                return false;
-            }
-        }
-        public Action kickUp() {
-            return new kickUp();
+        }public Action stop() {
+            return new Stop();
         }
     }
     public static class combine {
         private final DcMotorEx intake;
-
         public combine(HardwareMap hardwareMap) {
             intake = hardwareMap.get(DcMotorEx.class, "bottomIntake");
             intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         }
         public class Intake implements Action {
-            private boolean initialized = false;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    intake.setPower(0.5);
-                    initialized = true;
-                    new SleepAction(.5);
-            }
+                intake.setPower(0.5);
                 return false;
             }
-
-
-        }
-        public Action intake() {
+        }public Action intake() {
             return new Intake();
         }
-
-
         public class Outtake implements Action {
-            private boolean initialized = false;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    intake.setPower(-0.5);
-                    initialized = true;
-                }
+                intake.setPower(-0.5);
                 return false;
             }
-
-
-        }
-        public Action outtake() {
+        }public Action outtake() {
             return new Outtake();
         }
-
-
         public class Holdtake implements Action {
-
-
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 intake.setPower(0);
                 return false;
             }
-        }
-        public Action holdtake(){
-            return new Holdtake();
-        }
+        }public Action holdtake(){return new Holdtake();}
     }
-    public static class spindex {
-        private final DcMotorEx spindexer;
-        private final DistanceSensor frontDistance;
-        static int CPR = 538;
-        static int slotTicks = CPR/3;
+    public static class spindex{
+        DcMotorEx spindexer;
+        DistanceSensor frontDistance;
+        double slotTicks = 537.7/3;
+        double currentTick;
         public spindex(HardwareMap hardwareMap) {
             spindexer = hardwareMap.get(DcMotorEx.class, "topIntake");
             spindexer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             frontDistance = hardwareMap.get(DistanceSensor.class,"frontSlot");
         }
-        public class NextSlot implements Action {
-            private boolean initialized = false;
+        public class Unload implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()+slotTicks);
-                    spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                    spindexer.setPower(.3);
-                    initialized = true;
-                    new SleepAction(.4);
-                }
+                currentTick +=(slotTicks*6);
+                int currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.6);
                 return false;
             }
-        }
-        public Action nextSlot() {
-            return new NextSlot();
-        }
+        }public Action unload() {return new Unload();}
         public class PrevSlot implements Action {
-            private boolean initialized = false;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    spindexer.setTargetPosition(spindexer.getCurrentPosition()-slotTicks);
-                    spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                    spindexer.setPower(.3);
-                    initialized = true;
-                }
+                currentTick +=(slotTicks*-1);
+                int currentIntTick = (int)Math.round(currentTick);
+                spindexer.setTargetPosition(currentIntTick);
+                spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+                spindexer.setPower(.3);
                 return false;
             }
-        }
-        public Action prevSlot() {
-            return new PrevSlot();
-        }
-        public class AutoIntake implements Action {
-            private boolean initialized = false;
+        }public Action prevSlot() {return new PrevSlot();}
+        public class WaitForBall implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-
-                    initialized = true;
-                }
-                return frontDistance.getDistance(DistanceUnit.CM) > 8;
+                return frontDistance.getDistance(DistanceUnit.CM) > 3;
             }
-        }
-        public Action autoIntake() {
-            return new AutoIntake();
-        }
+        }public Action waitForBall() {return new WaitForBall();}
     }
 }

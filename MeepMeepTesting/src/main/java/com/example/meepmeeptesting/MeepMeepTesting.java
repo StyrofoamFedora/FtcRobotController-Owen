@@ -41,13 +41,19 @@ public class MeepMeepTesting {
         BlueCloseBot.runAction(BlueCloseBot.getDrive().actionBuilder(new Pose2d(-56, -46, Math.toRadians(233.5)))
                 .waitSeconds(1)
                 .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(233.5))
-                .waitSeconds(5)//shoot balls
-                .strafeToLinearHeading(new Vector2d(-11,-20),Math.toRadians(270))
-                .strafeTo(new Vector2d(-11,-30))
-                .strafeTo(new Vector2d(-11,-52), new TranslationalVelConstraint(4))
+                .waitSeconds(1)//shoot balls
+                .strafeToLinearHeading(new Vector2d(-12,-20),Math.toRadians(270))
+                .strafeTo(new Vector2d(-12,-30))
+                .strafeTo(new Vector2d(-12,-45), new TranslationalVelConstraint(4))
                 .waitSeconds(0.5)
                 .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(233.5))
-                .waitSeconds(5)
+                .waitSeconds(2)
+                .strafeToLinearHeading(new Vector2d(12,-20),Math.toRadians(270))
+                .strafeTo(new Vector2d(12,-30))
+                .strafeTo(new Vector2d(12,-45), new TranslationalVelConstraint(4))
+                .waitSeconds(0.5)
+                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(233.5))
+                .waitSeconds(2)
                 .strafeTo(new Vector2d(0,-40))
                 .build());
         //RED CLOSE

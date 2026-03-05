@@ -34,8 +34,8 @@ import java.util.List;
 
 //Class Define
 @Config
-@Autonomous(name = "CloseBLUE", group = "Autonomous")
-public class BLUECloseSpud4Auto extends LinearOpMode {
+@Autonomous(name = "OLDFarRED", group = "Autonomous")
+public class OLD_RedFarSpud4Auto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int visionOutputPosition = 0;
     int apriltagid = 21;
@@ -105,7 +105,7 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
         public shooter(HardwareMap hardwareMap) {
             motor1 = hardwareMap.get(DcMotorEx.class, "rightFly");
 
-            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,13);
+            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75,0,0,15);
             motor1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
 
 
@@ -119,7 +119,7 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    motor1.setVelocity(-1150);
+                    motor1.setVelocity(-1580);
                     initialized = true;
                 }
 
@@ -191,7 +191,7 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    intake.setPower(0.4);
+                    intake.setPower(0.5);
                     initialized = true;
                     sleep(500);
             }
@@ -309,75 +309,94 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
-        Pose2d initialPose = new Pose2d(-56, -46, Math.toRadians(235.5));
+        Pose2d initialPose = new Pose2d(60, 16, Math.toRadians(150));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         shooter shooter = new shooter(hardwareMap);
         kick kick = new kick(hardwareMap);
         combine combine = new combine(hardwareMap);
         spindex spindex = new spindex(hardwareMap);
         Eyes eyes = new Eyes(hardwareMap);
-
         while (!isStopRequested() && !opModeIsActive()) {
             int position = visionOutputPosition;
             telemetry.addData("Position during Init", position);
             telemetry.update();
             if (isStopRequested()) return;
         }
+
+
         int startPosition = visionOutputPosition;
         telemetry.addData("Starting Position", startPosition);
         telemetry.update();
         waitForStart();
 // Trajectories
-        TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-35,-25),Math.toRadians(160));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-35,-25,Math.toRadians(160)))
-                .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(228));
-        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(228)))
-                .strafeToLinearHeading(new Vector2d(-11,-20),Math.toRadians(270));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-11,-20, Math.toRadians(270)))
-                .strafeTo(new Vector2d(-11,-30))
-                .strafeTo(new Vector2d(-11,-45), new TranslationalVelConstraint(3));
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(230)))
-                .strafeTo(new Vector2d(0,-40));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-11,-45,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(228));
-
+       TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
+               .strafeToLinearHeading(new Vector2d(55,20),Math.toRadians(190));
+       TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(55,20,Math.toRadians(190)))
+               .strafeToLinearHeading(new Vector2d(57,18),Math.toRadians(150));
+        TrajectoryActionBuilder intakeBottomSet = drive.actionBuilder(new Pose2d(57,18,Math.toRadians(150)))
+                .strafeToLinearHeading(new Vector2d(36,20),Math.toRadians(90));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(36,20, Math.toRadians(90)))
+                .strafeTo(new Vector2d(36,30))
+                .strafeTo(new Vector2d(36,45), new TranslationalVelConstraint(4));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(55,16,Math.toRadians(150)))
+                .strafeTo(new Vector2d(36,36));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(36,45,Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(55,16), Math.toRadians(150));
         Action waitForTag = new WaitForTagAction(eyes,1500);
         Action unloadBalls =  new SequentialAction(
-                kick.kickUp(), new SleepAction(0.5),
-                kick.kickDown(), new SleepAction(0.3),
-                spindex.nextSlot(), new SleepAction(0.5),
-                kick.kickUp(), new SleepAction(0.5),
-                kick.kickDown(), new SleepAction(0.3),
-                spindex.nextSlot(), new SleepAction(0.5),
-                kick.kickUp(), new SleepAction(0.5),
+                kick.kickUp(), new SleepAction(0.2),
+                kick.kickDown(), new SleepAction(0.5),
+                spindex.nextSlot(), new SleepAction(1),
+                kick.kickUp(), new SleepAction(0.2),
+                kick.kickDown(), new SleepAction(1),
+                spindex.nextSlot(), new SleepAction(1),
+                kick.kickUp(), new SleepAction(0.2),
                 kick.kickDown());
-
 //Stuff That's run
         Actions.runBlocking(new SequentialAction(
                 shooter.spinUp(),
-                visionSet.build(),
-                waitForTag
-        ));
+                visionSet.build()
+                ));
         Action ballOrganize;
-        Action ballOrganize2;
         if (eyes.detectedTag==21){
             ballOrganize = spindex.nextSlot();
-            ballOrganize2 = spindex.nextSlot();
         } else if (eyes.detectedTag==23) {
             ballOrganize = spindex.prevSlot();
-            ballOrganize2 = spindex.prevSlot();
         } else  {
-            ballOrganize = new SleepAction(.1);
-            ballOrganize2 = new SleepAction(.1);
+            ballOrganize = new SleepAction(0.1);
         }
         Actions.runBlocking(new SequentialAction(
-                ballOrganize,
-                shootSet1.build(),
-                unloadBalls,
-                intakeTopSet.build(),
+                new SequentialAction(
+                        ballOrganize,
+                        shootSet1.build(),
+                        new SleepAction(0.5),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(0.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(1),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(0.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown()
+
+                ),
+                intakeBottomSet.build(),
                 shooter.spinDown(),
                 combine.intake(),
+                new SleepAction(.5),
                 new ParallelAction(
                         intakingTop.build(),
                         new SequentialAction(
@@ -388,23 +407,33 @@ public class BLUECloseSpud4Auto extends LinearOpMode {
                                 spindex.autoIntake()
                         )
                 ),
-                ballOrganize2,
                 combine.holdtake(),
-                combine.outtake(),
                 shooter.spinUp(),
-                new SleepAction(.5),
-                combine.holdtake(),
                 shootSet2.build(),
                 new SequentialAction(
-                        kick.kickUp(), new SleepAction(0.5),
-                        kick.kickDown(), new SleepAction(0.3),
-                        spindex.nextSlot(), new SleepAction(0.5),
-                        kick.kickUp(), new SleepAction(0.5),
-                        kick.kickDown(), new SleepAction(0.3),
-                        spindex.nextSlot(), new SleepAction(0.5),
-                        kick.kickUp(), new SleepAction(0.5),
-                        kick.kickDown()),
-                outsideSet.build()
+                        new SleepAction(0.5),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown(),
+                        new SleepAction(.5),
+                        spindex.nextSlot(),
+                        new SleepAction(1),
+                        kick.kickUp(),
+                        new SleepAction(0.2),
+                        kick.kickDown()
+                )
         ));
     }
 }
