@@ -1,4 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
+import static java.lang.Thread.sleep;
+
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -72,7 +74,7 @@ public class TestingAutoRobot{
         public class SpinUpClose implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                fly.setVelocity(-1200);
+                fly.setVelocity(1200);
                 return false;
             }
         }public Action spinUpClose() {
@@ -81,7 +83,7 @@ public class TestingAutoRobot{
         public class SpinUpFar implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                fly.setVelocity(-1600);
+                fly.setVelocity(1600);
                 return false;
             }
         }public Action spinUpFar() {
@@ -106,7 +108,7 @@ public class TestingAutoRobot{
         public class Intake implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                intake.setPower(0.5);
+                intake.setPower(0.75);
                 return false;
             }
         }public Action intake() {
@@ -129,6 +131,26 @@ public class TestingAutoRobot{
             }
         }public Action holdtake(){return new Holdtake();}
     }
+    public static class intakeLock {
+        private final Servo lock;
+        public intakeLock(HardwareMap hardwareMap) {
+            lock = hardwareMap.get(Servo.class, "lock");
+        }
+        public class Lock implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                lock.setPosition(0.75);
+                return false;
+            }
+        }public Action lock() {return new Lock();}
+        public class Unlock implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                lock.setPosition(0.4);
+                return false;
+            }
+        }public Action unlock() {return new Unlock();}
+    }
     public static class spindex{
         DcMotorEx spindexer;
         DistanceSensor frontDistance;
@@ -138,7 +160,10 @@ public class TestingAutoRobot{
             spindexer = hardwareMap.get(DcMotorEx.class, "topIntake");
             spindexer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             frontDistance = hardwareMap.get(DistanceSensor.class,"frontSlot");
+            spindexer.setTargetPosition(spindexer.getCurrentPosition());
+            currentTick = spindexer.getCurrentPosition();
         }
+
         public class Unload implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -153,7 +178,7 @@ public class TestingAutoRobot{
         public class PrevSlot implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                currentTick +=(slotTicks*-1);
+                currentTick -= slotTicks;
                 int currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -164,7 +189,8 @@ public class TestingAutoRobot{
         public class WaitForBall implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                return frontDistance.getDistance(DistanceUnit.CM) > 3;
+
+                return frontDistance.getDistance(DistanceUnit.CM) > 8;
             }
         }public Action waitForBall() {return new WaitForBall();}
     }

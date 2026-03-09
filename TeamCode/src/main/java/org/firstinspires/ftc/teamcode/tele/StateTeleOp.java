@@ -27,7 +27,7 @@ public class StateTeleOp extends LinearOpMode {
     public void runOpMode(){
         robot = new Robot();
         robot.initialize((hardwareMap));
-        aprilTagWebcam.init(hardwareMap);
+        aprilTagWebcam.init(hardwareMap,telemetry);
         waitForStart();
         while (opModeIsActive()){
             updateDrive();

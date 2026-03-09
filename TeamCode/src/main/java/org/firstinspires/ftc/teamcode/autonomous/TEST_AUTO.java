@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 //Imports
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
@@ -12,14 +13,15 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 //Class Define
 @Config
-@Autonomous(name = "NBC_AUTO_TEST", group = "Autonomous")
-public class BlueCloseTestingAuto extends LinearOpMode {
+@Autonomous(name = "AUTO_TEST", group = "Autonomous")
+public class TEST_AUTO extends LinearOpMode {
     //Create Default Variables for Vision Sets
-    int apriltagid = 1;
+    int apriltagid = 21;
     //Set up Classes for Trajectory + Actions
     @Override
     public void runOpMode() throws InterruptedException {
@@ -30,6 +32,7 @@ public class BlueCloseTestingAuto extends LinearOpMode {
         TestingAutoRobot.spindex spindex = new TestingAutoRobot.spindex(hardwareMap);
         TestingAutoRobot.Eyes eyes = new TestingAutoRobot.Eyes(hardwareMap);
         TestingAutoRobot.intakeLock intakeLock = new TestingAutoRobot.intakeLock(hardwareMap);
+
         while (!isStopRequested() && !opModeIsActive()) {
             telemetry.addData("Position during Init", apriltagid);
             telemetry.update();
@@ -60,69 +63,26 @@ public class BlueCloseTestingAuto extends LinearOpMode {
 
 //Actions Part 2 Electric Boogaloo
         Action waitForTag = new TestingAutoRobot.WaitForTagAction(eyes,1500);
-        Action autoIntake = new SequentialAction(spindex.waitForBall(), new SleepAction(0.2), spindex.prevSlot());
+        Action autoIntake = new SequentialAction(spindex.waitForBall(), new SleepAction(0.4), spindex.prevSlot());
 //Vision Set + Looking
-        Actions.runBlocking(new SequentialAction(
-                visionSet.build(),
-                waitForTag
-        ));
+
+//                combine.intake(),
+//                shooter.spinUpClose(),
+//                autoIntake,
+//                autoIntake,
+//                spindex.waitForBall(),
+//                new SleepAction(1),
+//                spindex.unload(),
+//                new SleepAction(10)
+
 //ball organizing Actions
-        Action ballOrganize;
-        Action ballOrganize2;
-        if (eyes.detectedTag==21){
-            ballOrganize = spindex.prevSlot();
-            ballOrganize2 = spindex.prevSlot();
-        } else if (eyes.detectedTag==23) {
-            ballOrganize = spindex.prevSlot();
-            ballOrganize2 = spindex.prevSlot();
-        } else  {
-            ballOrganize = new SleepAction(.01);
-            ballOrganize2 = new SleepAction(.01);
-        }
+
 //Remaining Driving and shooting
         Actions.runBlocking(new SequentialAction(
-                ballOrganize,
-                shooter.spinUpClose(),
-                shootSet1.build(),
-                combine.intake(),
-                spindex.unload(),
-                new SleepAction(0.5),
-                intakeTopSet.build(),
                 intakeLock.lock(),
-                new ParallelAction(
-                        intakingTop.build(),
-                        new SequentialAction(
-                        spindex.waitForBall(), new SleepAction(.5), spindex.prevSlot(),
-                        spindex.waitForBall(), new SleepAction(.5), spindex.prevSlot(),
-                        spindex.waitForBall()
-                        )
-                ),
-                ballOrganize2,
-                combine.outtake(),
-                new SleepAction(.5),
-                combine.holdtake(),
-                shootSet2.build(),
-                combine.intake(),
+                new SleepAction(3),
                 intakeLock.unlock(),
-                spindex.unload(),
-                new SleepAction(0.5),
-                intakeMiddleSet.build(),
-                combine.intake(),
-                intakeLock.lock(),
-                new ParallelAction(
-                        intakingMiddle.build(),
-                        new SequentialAction(
-                                spindex.waitForBall(), new SleepAction(0.2), spindex.prevSlot(),
-                                spindex.waitForBall(), new SleepAction(0.2), spindex.prevSlot(),
-                                spindex.waitForBall(), new SleepAction(0.2)
-                        )
-                ),
-                shootSet3.build(),
-                combine.intake(),
-                intakeLock.unlock(),
-                spindex.unload(),
-                new SleepAction(0.5),
-                outsideSet.build()
+                new SleepAction(3)
         ));
     }
 }
