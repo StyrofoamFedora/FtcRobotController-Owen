@@ -66,23 +66,19 @@ public class TEST_AUTO extends LinearOpMode {
         Action autoIntake = new SequentialAction(spindex.waitForBall(), new SleepAction(0.4), spindex.prevSlot());
 //Vision Set + Looking
 
-//                combine.intake(),
-//                shooter.spinUpClose(),
-//                autoIntake,
-//                autoIntake,
-//                spindex.waitForBall(),
-//                new SleepAction(1),
-//                spindex.unload(),
-//                new SleepAction(10)
+
 
 //ball organizing Actions
 
 //Remaining Driving and shooting
         Actions.runBlocking(new SequentialAction(
+                combine.intake(),
                 intakeLock.lock(),
-                new SleepAction(3),
-                intakeLock.unlock(),
-                new SleepAction(3)
+                spindex.waitForBall(), new SleepAction(0.4), spindex.prevSlot(),
+                spindex.waitForBall(), new SleepAction(0.4), spindex.prevSlot(),
+                spindex.waitForBall(),
+                combine.holdtake(),
+                new SleepAction(10)
         ));
     }
 }

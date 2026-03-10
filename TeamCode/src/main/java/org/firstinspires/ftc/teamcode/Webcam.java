@@ -27,7 +27,7 @@ public class Webcam {
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         aprilTagProcessor = new AprilTagProcessor.Builder()
-                .setDrawTagID(false)
+                .setDrawTagID(true)
                 .setDrawTagOutline(false)
                 .setDrawAxes(false)
                 .setDrawCubeProjection(false)

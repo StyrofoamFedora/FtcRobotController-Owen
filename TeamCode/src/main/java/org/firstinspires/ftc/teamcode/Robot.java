@@ -5,7 +5,6 @@ import android.util.Log;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,10 +14,11 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import com.qualcomm.robotcore.hardware.CRServo;
+
 
 public class Robot {
 
@@ -34,13 +34,16 @@ public class Robot {
     public CRServo lift;
     public Servo RGB1;
     public Servo RGB2;
+    public Servo intakeLock;
     public RevColorSensorV3 shootColor;
+    public RevColorSensorV3 backLeftSlot;
     public DistanceSensor frontDistance;
     public IMU imu;
 
+
     public double currentTick=0;
     public String shootBall;
-    public boolean frontSlot;
+    public boolean frontSlot, blSlot;
     public Robot() {}
 
 
@@ -50,20 +53,21 @@ public class Robot {
             leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
             rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
             rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-            //leftFly = hardwareMap.get(DcMotorEx.class, "leftFly");
             rightFly = hardwareMap.get(DcMotorEx.class, "rightFly");
             Intake = hardwareMap.get(DcMotor.class, "bottomIntake");
             spindexer = hardwareMap.get(DcMotorEx.class, "topIntake");
             imu = hardwareMap.get(IMU.class, "imu");
-            // Adjust the orientation parameters to match your robot
+            // IMU Orientation
             IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.UP,
                     RevHubOrientationOnRobot.UsbFacingDirection.RIGHT));
             imu.initialize(parameters);
             lift = hardwareMap.get(CRServo.class, "lift");
+            intakeLock = hardwareMap.get(Servo.class,"lock");
             RGB1 = hardwareMap.servo.get("rgb");
             RGB2 = hardwareMap.servo.get("rgb2");
             frontDistance = hardwareMap.get(DistanceSensor.class,"frontSlot");
+            backLeftSlot = hardwareMap.get(RevColorSensorV3.class, "blball");
             rightFly.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
             spindexer.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
             spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -75,7 +79,7 @@ public class Robot {
             leftBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
             //rightFly.setDirection(DcMotorSimple.Direction.REVERSE);
         } catch (Exception e) {
-            Log.e(TAG, "Error initializing hardware", e); // Replaces e.printStackTrace()
+            Log.e(TAG, "Error initializing hardware", e);
         }
     }
     public void updateDriveMotors(double x, double y, double rx) {
@@ -102,8 +106,9 @@ public class Robot {
         rightFly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         rightFly.setVelocity(Velocity);
     }
-    public void updateIntakeMotors(double powerIntake) {
+    public void updateIntakeMotors(double powerIntake, double lock) {
         Intake.setPower(1 * powerIntake);
+        intakeLock.setPosition(lock);
     }
     public void updateSpindexSlot(double slots, double powerSpin){
         double CPR = 537.7;
@@ -115,16 +120,19 @@ public class Robot {
             spindexer.setPower(powerSpin);
     }
     public void updateColorDistance(){
-//        double hue = JavaUtil.colorToHue(shootColor.getNormalizedColors().toColor());
-//        if(hue < 80){shootBall = "None"; }
-//        else if (hue < 200) {shootBall = "Green"; }
-//        else if (hue < 350){shootBall = "Purple"; }
-//        else {shootBall = "None"; }
-        frontSlot = frontDistance.getDistance(DistanceUnit.CM) < 5;
+        double hue = JavaUtil.colorToHue(backLeftSlot.getNormalizedColors().toColor());
+        if(hue < 80){shootBall = "None"; }
+        else if (hue < 200) {shootBall = "Green"; }
+        else if (hue < 350){shootBall = "Purple"; }
+        else {shootBall = "None"; }
+        frontSlot = frontDistance.getDistance(DistanceUnit.CM) < 7;
+        blSlot = backLeftSlot.getDistance(DistanceUnit.CM) < 2;
     }
     public void updateRGB(){
-        if (frontDistance.getDistance(DistanceUnit.CM) < 5){RGB2.setPosition(.5);}
+        if (frontDistance.getDistance(DistanceUnit.CM) < 7){RGB2.setPosition(.5);}
         else{RGB2.setPosition(.28);}
+        if (backLeftSlot.getDistance(DistanceUnit.CM) < 2){RGB1.setPosition(.5);}
+        else{RGB1.setPosition(.28);}
     }
     public void updateLift(double lifterPower){
         lift.setPower(lifterPower);

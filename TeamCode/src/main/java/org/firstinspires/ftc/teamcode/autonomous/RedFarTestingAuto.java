@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 //Class Define
 @Config
-@Autonomous(name = "NRC_AUTO_TEST", group = "Autonomous")
+@Autonomous(name = "NRF_AUTO_TEST", group = "Autonomous")
 public class RedFarTestingAuto extends LinearOpMode {
     //Create Default Variables for Vision Sets
     int apriltagid = 21;
