@@ -27,7 +27,6 @@ public class Webcam {
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         aprilTagProcessor = new AprilTagProcessor.Builder()
-                .setDrawTagID(true)
                 .setDrawTagOutline(false)
                 .setDrawAxes(false)
                 .setDrawCubeProjection(false)
@@ -36,18 +35,15 @@ public class Webcam {
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, "eyes"));
         builder.setCameraResolution(new Size(640, 480));
-        builder.enableLiveView(false);
+        builder.enableLiveView(true);
         builder.addProcessor(aprilTagProcessor);
     }
-
     public void update() {
         detectedTags = aprilTagProcessor.getDetections();
     }
-
     public List<AprilTagDetection> getDetectedTags() {
         return detectedTags;
     }
-
     public AprilTagDetection getTagBySpecificId(int id) {
         for (AprilTagDetection detection : detectedTags) {
             if (detection.id == id) {
@@ -56,7 +52,6 @@ public class Webcam {
         }
         return null;
     }
-
 
     public void stop() {
         if (visionPortal != null) {

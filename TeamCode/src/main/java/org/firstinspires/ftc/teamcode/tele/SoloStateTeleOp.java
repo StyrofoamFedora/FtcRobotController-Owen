@@ -5,13 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Webcam;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 @Config
-@TeleOp(name = "State Tele-op", group = "Driver Op Mode")
-public class StateTeleOp extends LinearOpMode {
+@TeleOp(name = "Solo State Tele-op", group = "Driver Op Mode")
+public class SoloStateTeleOp extends LinearOpMode {
     private Robot robot;
     boolean isTargetLock = false;
     double xDrive,yDrive,rxDrive = 0;
@@ -94,17 +95,17 @@ public class StateTeleOp extends LinearOpMode {
                 flywheelControl = 1072.45 * Math.pow(1.00332, goalDist);
             }
         }else{
-            if (gamepad2.leftBumperWasPressed()) {flywheelControl = 1240;}
-            else if (gamepad2.bWasPressed()) {flywheelControl = 0;}
-            if (gamepad2.dpadUpWasPressed()) {flywheelControl += 20;}
-            if (gamepad2.dpadDownWasPressed()) {flywheelControl -= 20;}
+            if (gamepad1.leftBumperWasPressed()) {flywheelControl = 1240;}
+            else if (gamepad1.bWasPressed()) {flywheelControl = 1600;}
+            if (gamepad1.dpadUpWasPressed()) {flywheelControl += 20;}
+            if (gamepad1.dpadDownWasPressed()) {flywheelControl -= 20;}
         }
         robot.updateFlywheelMotors(flywheelControl);
     }
     private void updateIntake(){
         if (gamepad1.left_trigger>0.2){intakeControl = -0.8;intakeLockControl=0.9;}
         else if (gamepad1.right_trigger>0.2) {intakeControl=0.8;intakeLockControl=0.9;ballStorage1 = false;}
-        else if (gamepad2.a){intakeControl = 0.8;intakeLockControl=0;}
+        else if (gamepad1.a){intakeControl = 0.8;intakeLockControl=0;}
         else {intakeControl=0;intakeLockControl =0.45;}
         robot.updateIntakeMotors(intakeControl,intakeLockControl);
     }
@@ -125,10 +126,10 @@ public class StateTeleOp extends LinearOpMode {
             else{multiSee.reset();}
         }
         else {
-            if (gamepad2.dpadRightWasPressed()) {spindexSlots = -1;}
-            else if (gamepad2.xWasPressed()) {spindexSlots = -0.1;}
-            else if (gamepad2.yWasPressed()) {spindexSlots = 0.1;}
-            else if (gamepad2.aWasPressed() && robot.rightFly.getVelocity() > 1000) {
+            if (gamepad1.dpadRightWasPressed()) {spindexSlots = -1;}
+            else if (gamepad1.xWasPressed()) {spindexSlots = -0.1;}
+            else if (gamepad1.yWasPressed()) {spindexSlots = 0.1;}
+            else if (gamepad1.aWasPressed() && robot.rightFly.getVelocity() > 1000) {
                 spindexPowerControl = 0.6;
                 spindexSlots = 4;
                 ballStorage3 = false;
@@ -140,8 +141,8 @@ public class StateTeleOp extends LinearOpMode {
         spindexSlots = 0;
     }
     private void updateLift(){
-        if(gamepad2.options){liftControl = 0.5;}
-        else if (gamepad2.right_stick_button){liftControl = -0.5;}
+        if(gamepad1.share){liftControl = 0.5;}
+        else if (gamepad1.left_stick_button){liftControl = -0.5;}
         else{liftControl = 0;}
         robot.updateLift(liftControl);
     }

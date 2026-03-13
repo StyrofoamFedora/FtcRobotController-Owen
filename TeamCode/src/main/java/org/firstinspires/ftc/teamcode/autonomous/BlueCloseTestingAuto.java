@@ -38,28 +38,29 @@ public class BlueCloseTestingAuto extends LinearOpMode {
         waitForStart();
 // Trajectories
         TrajectoryActionBuilder visionSet = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-40,-25),Math.toRadians(170));
-        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-40,-25,Math.toRadians(170)))
-                .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(231.5));
-        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(231.5)))
-                .strafeToLinearHeading(new Vector2d(-11,-20),Math.toRadians(270));
-        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-11,-20,Math.toRadians(270)))
-                .strafeTo(new Vector2d(-11,-30))
-                .strafeTo(new Vector2d(-11,-45), new TranslationalVelConstraint(4));
-        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-11,-45,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(231.5));
-        TrajectoryActionBuilder intakeMiddleSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(231.5)))
+                .strafeToLinearHeading(new Vector2d(-40,-25),Math.toRadians(160));
+        TrajectoryActionBuilder shootSet1 = drive.actionBuilder(new Pose2d(-40,-25,Math.toRadians(160)))
+                .strafeToLinearHeading(new Vector2d(-30,-20),Math.toRadians(227));
+        TrajectoryActionBuilder intakeTopSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(227)))
+                .strafeToLinearHeading(new Vector2d(-14,-20),Math.toRadians(270));
+        TrajectoryActionBuilder intakingTop = drive.actionBuilder(new Pose2d(-14,-20,Math.toRadians(270)))
+                .strafeTo(new Vector2d(-14,-25))
+                .strafeTo(new Vector2d(-14,-45), new TranslationalVelConstraint(4));
+        TrajectoryActionBuilder shootSet2 = drive.actionBuilder(new Pose2d(-14,-45,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(227));
+        TrajectoryActionBuilder intakeMiddleSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(227)))
                 .strafeToLinearHeading(new Vector2d(12,-20),Math.toRadians(270));
         TrajectoryActionBuilder intakingMiddle = drive.actionBuilder(new Pose2d(12,-20,Math.toRadians(270)))
-                .strafeTo(new Vector2d(12,-30))
+                .strafeTo(new Vector2d(12,-25))
                 .strafeTo(new Vector2d(12,-45), new TranslationalVelConstraint(4));
         TrajectoryActionBuilder shootSet3 = drive.actionBuilder(new Pose2d(12,-45,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(233.5));
-        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(233.5)))
+                .strafeTo(new Vector2d(15,-30))
+                .strafeToLinearHeading(new Vector2d(-30,-20), Math.toRadians(227));
+        TrajectoryActionBuilder outsideSet = drive.actionBuilder(new Pose2d(-30,-20,Math.toRadians(227)))
                 .strafeTo(new Vector2d(0,-40));
 
 //Actions Part 2 Electric Boogaloo
-        Action waitForTag = new TestingAutoRobot.WaitForTagAction(eyes,1500);
+        Action waitForTag = new TestingAutoRobot.WaitForTagAction(eyes,500);
         Action autoIntake = new SequentialAction(spindex.waitForBall(), new SleepAction(0.2), spindex.prevSlot());
 //Vision Set + Looking
         Actions.runBlocking(new SequentialAction(
@@ -69,15 +70,19 @@ public class BlueCloseTestingAuto extends LinearOpMode {
 //ball organizing Actions
         Action ballOrganize;
         Action ballOrganize2;
+        Action ballOrganize3;
         if (eyes.detectedTag==21){
             ballOrganize = spindex.prevSlot();
             ballOrganize2 = spindex.prevSlot();
-        } else if (eyes.detectedTag==23) {
-            ballOrganize = spindex.prevSlot();
-            ballOrganize2 = spindex.prevSlot();
+            ballOrganize3 = spindex.prevSlot();
+        } else if (eyes.detectedTag==22) {
+            ballOrganize = new SequentialAction(spindex.prevSlot(),spindex.prevSlot());
+            ballOrganize2 = new SequentialAction(spindex.prevSlot(),spindex.prevSlot());
+            ballOrganize3 = new SequentialAction(spindex.prevSlot(),spindex.prevSlot());
         } else  {
             ballOrganize = new SleepAction(.01);
             ballOrganize2 = new SleepAction(.01);
+            ballOrganize3 = new SleepAction(.01);
         }
 //Remaining Driving and shooting
         Actions.runBlocking(new SequentialAction(
@@ -92,18 +97,16 @@ public class BlueCloseTestingAuto extends LinearOpMode {
                 new ParallelAction(
                         intakingTop.build(),
                         new SequentialAction(
-                        spindex.waitForBall(), new SleepAction(.5), spindex.prevSlot(),
-                        spindex.waitForBall(), new SleepAction(.5), spindex.prevSlot(),
-                        spindex.waitForBall()
+                        spindex.waitForBall(), new SleepAction(0.7), spindex.prevSlot(),
+                        spindex.waitForBall(), new SleepAction(0.7), spindex.prevSlot(),
+                        spindex.waitForBall(), new SleepAction(0.7), combine.holdtake()
                         )
                 ),
+                intakeLock.unlock(),
                 ballOrganize2,
-                combine.outtake(),
                 new SleepAction(.5),
-                combine.holdtake(),
                 shootSet2.build(),
                 combine.intake(),
-                intakeLock.unlock(),
                 spindex.unload(),
                 new SleepAction(0.5),
                 intakeMiddleSet.build(),
@@ -112,14 +115,15 @@ public class BlueCloseTestingAuto extends LinearOpMode {
                 new ParallelAction(
                         intakingMiddle.build(),
                         new SequentialAction(
-                                spindex.waitForBall(), new SleepAction(0.2), spindex.prevSlot(),
-                                spindex.waitForBall(), new SleepAction(0.2), spindex.prevSlot(),
-                                spindex.waitForBall(), new SleepAction(0.2)
+                                spindex.waitForBall(), new SleepAction(0.5), spindex.prevSlot(),
+                                spindex.waitForBall(), new SleepAction(0.7), spindex.prevSlot(),
+                                spindex.waitForBall(), new SleepAction(0.7), combine.holdtake()
                         )
                 ),
+                intakeLock.unlock(),
+                ballOrganize3,
                 shootSet3.build(),
                 combine.intake(),
-                intakeLock.unlock(),
                 spindex.unload(),
                 new SleepAction(0.5),
                 outsideSet.build()

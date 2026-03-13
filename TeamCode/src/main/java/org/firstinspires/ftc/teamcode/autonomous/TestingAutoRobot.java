@@ -6,21 +6,22 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
+
 @Config
-@Autonomous(name = "AUTO_TEST", group = "Autonomous")
 public class TestingAutoRobot{
     public static class Eyes {
         public final AprilTagProcessor aprilTag;
@@ -67,13 +68,15 @@ public class TestingAutoRobot{
         private final DcMotorEx fly;
         public shooter(HardwareMap hardwareMap) {
             fly = hardwareMap.get(DcMotorEx.class, "rightFly");
-            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(75, 0, 0, 13.2);
+            PIDFCoefficients pidfCoefficients = new PIDFCoefficients(80, 0, 0, 13.2);
             fly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
         }
         public class SpinUpClose implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                fly.setVelocity(1200);
+                PIDFCoefficients pidfCoefficients = new PIDFCoefficients(80, 0, 0, 13.2);
+                fly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+                fly.setVelocity(1150);
                 return false;
             }
         }public Action spinUpClose() {
@@ -82,7 +85,9 @@ public class TestingAutoRobot{
         public class SpinUpFar implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                fly.setVelocity(1600);
+                PIDFCoefficients pidfCoefficients = new PIDFCoefficients(85, 0, 0, 15);
+                fly.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+                fly.setVelocity(1650);
                 return false;
             }
         }public Action spinUpFar() {
@@ -138,7 +143,7 @@ public class TestingAutoRobot{
         public class Lock implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                lock.setPosition(0.75);
+                lock.setPosition(0.85);
                 return false;
             }
         }public Action lock() {return new Lock();}
@@ -181,15 +186,16 @@ public class TestingAutoRobot{
                 int currentIntTick = (int)Math.round(currentTick);
                 spindexer.setTargetPosition(currentIntTick);
                 spindexer.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-                spindexer.setPower(.3);
+                spindexer.setPower(.4);
                 return false;
             }
         }public Action prevSlot() {return new PrevSlot();}
         public class WaitForBall implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-
-                return frontDistance.getDistance(DistanceUnit.CM) > 8;
+                ElapsedTime autoIntakeTimer = new ElapsedTime();
+                autoIntakeTimer.reset();
+                return (frontDistance.getDistance(DistanceUnit.CM) > 8) || (autoIntakeTimer.seconds()>1);
             }
         }public Action waitForBall() {return new WaitForBall();}
     }
