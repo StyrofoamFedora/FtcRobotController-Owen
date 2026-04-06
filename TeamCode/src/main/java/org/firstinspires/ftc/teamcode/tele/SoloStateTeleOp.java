@@ -110,7 +110,7 @@ public class SoloStateTeleOp extends LinearOpMode {
         robot.updateIntakeMotors(intakeControl,intakeLockControl);
     }
     private void updateSpindex(){
-        if(frontSlot && !robot.spindexer.isBusy() && autoIntakeTimer.seconds()>1.0 && !ballStorage3){
+        if(frontSlot && !robot.spindexer.isBusy() && autoIntakeTimer.seconds()>1.0 && !ballStorage3 && !ballStorage1){
             if(multiSee.seconds()>0.5) {
                 if (blSlot) {
                     intakeControl = 0;
